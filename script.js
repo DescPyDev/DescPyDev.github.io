@@ -212,7 +212,7 @@ async function handleFormSubmit(e) {
 
     } catch (error) {
         console.error('Ошибка:', error);
-        showError(`❌ Ошибка отправки: ${error.message}`);
+        showError(`❌ Ошибка отправки: ${error.message}    ${url}`);
     } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
@@ -233,6 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
+
 
 
 
