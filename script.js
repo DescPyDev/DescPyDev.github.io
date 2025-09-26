@@ -270,40 +270,6 @@ async function handleFormSubmit(e) {
     }
 };
 
-async function generatePDF() {
-  // Создаем новый PDF-документ
-  const pdfDoc = await PDFLib.PDFDocument.create();
-
-  // Добавляем страницу в документ
-  const page = pdfDoc.addPage();
-
-  // Получаем размеры страницы
-  const { width, height } = page.getSize();
-
-  // Рисуем текст "Hello World" на странице
-  page.drawText('Hello World', {
-    x: 50,
-    y: height - 50,
-    size: 30,
-  });
-
-  // Сохраняем PDF в байтовый массив
-  const pdfBytes = await pdfDoc.save();
-
-  // Создаем Blob из байтов с типом для PDF
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-
-  // Создаем временный URL для скачивания
-  const url = URL.createObjectURL(blob);
-
-  // Перенаправляем браузер на ссылку скачивания
-  window.location.href = url;
-
-  // Через минуту удаляем URL из памяти браузера
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-};
-
-
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loanForm').addEventListener('submit', handleFormSubmit);
     
