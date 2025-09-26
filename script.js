@@ -199,6 +199,7 @@ async function handleFormSubmit(e) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload),
+            mode: 'cors'
         });
 
         if (response.ok) {
@@ -232,6 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
+
 
 
 
