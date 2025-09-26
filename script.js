@@ -187,7 +187,7 @@ async function handleFormSubmit(e) {
     document.getElementById('errorMessage').style.display = 'none';
 
     try {
-        const url = "https://jack1499.app.n8n.cloud/webhook-test/de4ce596-888e-44b5-a0ed-5f73e66dfdfe";
+        const url = "https://t9jqp2-95-26-207-148.ru.tuna.am/test";
         const payload = {
             name: "Хуесос",
             age: 16
@@ -233,6 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
+
 
 
 
