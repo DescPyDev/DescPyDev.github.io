@@ -305,8 +305,7 @@ async function generatePDF() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    //document.getElementById('loanForm').addEventListener('submit', handleFormSubmit);
-    document.getElementById('loanForm').addEventListener('submit', generatePDF);
+    document.getElementById('loanForm').addEventListener('submit', handleFormSubmit);
     
     const existingMonthlyInputs = document.querySelectorAll('.monthly-payment-input');
     const existingTotalInputs = document.querySelectorAll('.total-liability-input');
@@ -319,5 +318,6 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
+
 
 
