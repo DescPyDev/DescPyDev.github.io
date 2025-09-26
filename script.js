@@ -187,16 +187,11 @@ async function handleFormSubmit(e) {
     document.getElementById('errorMessage').style.display = 'none';
 
     try {
-        //const url = "https://rlp10q-95-26-207-148.ru.tuna.am/test";
-        const url = "https://jsonplaceholder.typicode.com/posts";
+        const url = "https://rlp10q-95-26-207-148.ru.tuna.am/test";
         const payload = {
             name: "Хуесос",
             age: 16
         };
-
-        // Добавляем таймаут для запроса
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         const response = await fetch(url, {
             method: 'POST',
@@ -204,10 +199,7 @@ async function handleFormSubmit(e) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload),
-            signal: controller.signal
         });
-
-        clearTimeout(timeoutId);
 
         if (response.ok) {
             const data = await response.json();
@@ -229,7 +221,6 @@ async function handleFormSubmit(e) {
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loanForm').addEventListener('submit', handleFormSubmit);
     
-    // Также добавьте обработчики для существующих полей ввода
     const existingMonthlyInputs = document.querySelectorAll('.monthly-payment-input');
     const existingTotalInputs = document.querySelectorAll('.total-liability-input');
     
@@ -240,5 +231,4 @@ document.addEventListener('DOMContentLoaded', function() {
     existingTotalInputs.forEach(input => {
         input.addEventListener('input', calculateTotals);
     });
-
 });
