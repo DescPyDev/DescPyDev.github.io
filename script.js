@@ -175,6 +175,7 @@ function serializeFormData(formData) {
 }
 
 // Обработка отправки формы
+/*
 async function handleFormSubmit(e) {
     e.preventDefault();
     
@@ -187,7 +188,7 @@ async function handleFormSubmit(e) {
     document.getElementById('errorMessage').style.display = 'none';
 
     try {
-        const url = "https://jack1499.app.n8n.cloud/webhook-test/de4ce596-888e-44b5-a0ed-5f73e66dfdfe";
+        const url = "https://t9jqp2-95-26-207-148.ru.tuna.am/test";
         const payload = {
             name: "Хуесос",
             age: 16
@@ -199,7 +200,7 @@ async function handleFormSubmit(e) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload),
-            mode: 'no-cors'
+            mode: 'cors'
         });
 
         if (response.ok) {
@@ -218,9 +219,94 @@ async function handleFormSubmit(e) {
         submitBtn.disabled = false;
     }
 };
+*/
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    const submitBtn = this.querySelector('.submit-btn');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Отправка...';
+    submitBtn.disabled = true;
+
+    document.getElementById('successMessage').style.display = 'none';
+    document.getElementById('errorMessage').style.display = 'none';
+
+    try {
+        // Используем публичный сервис для тестирования
+        const url = "https://httpbin.org/post";
+        
+        // Собираем реальные данные из формы
+        const formData = new FormData(document.getElementById('loanForm'));
+        const payload = serializeFormData(formData);
+
+        console.log('Отправляемые данные:', payload); // Для отладки
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
+            mode: 'cors'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Успешный ответ:', data);
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // Показываем ответ для отладки
+            showDebugInfo(`Запрос успешно отправлен. Ответ: ${JSON.stringify(data.json, null, 2)}`);
+        } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showError(`❌ Ошибка отправки: ${error.message}`);
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+};
+
+async function generatePDF() {
+  // Создаем новый PDF-документ
+  const pdfDoc = await PDFLib.PDFDocument.create();
+
+  // Добавляем страницу в документ
+  const page = pdfDoc.addPage();
+
+  // Получаем размеры страницы
+  const { width, height } = page.getSize();
+
+  // Рисуем текст "Hello World" на странице
+  page.drawText('Hello World', {
+    x: 50,
+    y: height - 50,
+    size: 30,
+  });
+
+  // Сохраняем PDF в байтовый массив
+  const pdfBytes = await pdfDoc.save();
+
+  // Создаем Blob из байтов с типом для PDF
+  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+  // Создаем временный URL для скачивания
+  const url = URL.createObjectURL(blob);
+
+  // Перенаправляем браузер на ссылку скачивания
+  window.location.href = url;
+
+  // Через минуту удаляем URL из памяти браузера
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+};
+
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('loanForm').addEventListener('submit', handleFormSubmit);
+    //document.getElementById('loanForm').addEventListener('submit', handleFormSubmit);
+    document.getElementById('loanForm').addEventListener('submit', generatePDF());
     
     const existingMonthlyInputs = document.querySelectorAll('.monthly-payment-input');
     const existingTotalInputs = document.querySelectorAll('.total-liability-input');
@@ -233,5 +319,3 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
-
-
