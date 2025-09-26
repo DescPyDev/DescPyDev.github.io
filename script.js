@@ -187,7 +187,8 @@ async function handleFormSubmit(e) {
     document.getElementById('errorMessage').style.display = 'none';
 
     try {
-        const url = "https://rlp10q-95-26-207-148.ru.tuna.am/test";
+        //const url = "https://rlp10q-95-26-207-148.ru.tuna.am/test";
+        const url = "https://jsonplaceholder.typicode.com/posts";
         const payload = {
             name: "Хуесос",
             age: 16
@@ -239,4 +240,5 @@ document.addEventListener('DOMContentLoaded', function() {
     existingTotalInputs.forEach(input => {
         input.addEventListener('input', calculateTotals);
     });
+
 });
