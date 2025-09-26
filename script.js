@@ -187,7 +187,7 @@ async function handleFormSubmit(e) {
     document.getElementById('errorMessage').style.display = 'none';
 
     try {
-        const url = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://ai99sr-95-26-207-148.ru.tuna.am/test");
+        const url = "https://2pwm16-95-26-207-148.ru.tuna.am";
         const payload = {
             name: "Хуесос",
             age: 16
@@ -232,6 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
+
 
 
 
