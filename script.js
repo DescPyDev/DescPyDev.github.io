@@ -115,28 +115,30 @@ function showError(message) {
 }
 
 function serializeFormData(formData) {
-    const data = {
-        personal_info: {
-            last_name: formData.get('last_name') || '',
-            first_name: formData.get('first_name') || '',
-            middle_name: formData.get('middle_name') || '',
-            marital_status: formData.get('marital_status') === 'on',
-            gender: formData.get('gender') || ''
-        },
-        monthly_expenses: {
-            house_expenses: parseInt(formData.get('house_expenses')) || 0,
-            food_expenses: parseInt(formData.get('food_expenses')) || 0,
-            transport_expenses: parseInt(formData.get('transport_expenses')) || 0
-        },
-        ownership: [],
-        sources_of_official_income: [],
-        liabilities: [],
-        totals: {
-            total_liabilities: parseFloat(document.getElementById('totalLiabilities').textContent.replace(/\s/g, '')) || 0,
-            monthly_payment: parseFloat(document.getElementById('totalMonthlyPayment').textContent.replace(/\s/g, '')) || 0
-        }
+    // Получаем значения из формы
+    const lastName = formData.get('last_name') || '';
+    const firstName = formData.get('first_name') || '';
+    const middleName = formData.get('middle_name') || '';
+    
+    // Преобразуем значения семейного положения
+    const maritalStatusValue = formData.get('marital_status') || '';
+    const maritalStatusMap = {
+        'married': 'Женат/Замужем',
+        'single': 'Холост/Не замужем', 
+        'divorced': 'Разведен(а)',
+        'widowed': 'Вдовец/Вдова'
     };
-
+    const maritalStatus = maritalStatusMap[maritalStatusValue] || maritalStatusValue;
+    
+    // Преобразуем значения пола
+    const genderValue = formData.get('gender') || '';
+    const genderMap = {
+        'male': 'Мужской',
+        'female': 'Женский'
+    };
+    const gender = genderMap[genderValue] || genderValue;
+    
+    // Собираем данные по категориям
     const ownershipData = {};
     const incomeData = {};
     const liabilitiesData = {};
@@ -167,59 +169,72 @@ function serializeFormData(formData) {
         }
     });
 
-    data.ownership = Object.values(ownershipData).filter(item => item.name && item.name.trim() !== '');
-    data.sources_of_official_income = Object.values(incomeData).filter(item => item.name && item.name.trim() !== '');
-    data.liabilities = Object.values(liabilitiesData).filter(item => item.name && item.name.trim() !== '');
+    const property = Object.values(ownershipData)
+        .filter(item => item.name && item.name.trim() !== '')
+        .map(item => ({
+            'Наименование': item.name || '',
+            'Доля': "",
+            'Совм': item.is_jointly ? "Да" : "Нет",
+            'Стоимость руб.': item.cost || 0
+        }));
 
-    return data;
-}
+    const sources_of_official_income = Object.values(incomeData)
+        .filter(item => item.name && item.name.trim() !== '')
+        .map(item => ({
+            'Источник получения дохода': item.name || '',
+            'Сумма в месяц, руб.': item.salary || 0
+        }));
 
-// Обработка отправки формы
-/*
-async function handleFormSubmit(e) {
-    e.preventDefault();
+    const houseExpenses = parseInt(formData.get('house_expenses')) || 0;
+    const foodExpenses = parseInt(formData.get('food_expenses')) || 0;
+    const transportExpenses = parseInt(formData.get('transport_expenses')) || 0;
     
-    const submitBtn = this.querySelector('.submit-btn');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Отправка...';
-    submitBtn.disabled = true;
-
-    document.getElementById('successMessage').style.display = 'none';
-    document.getElementById('errorMessage').style.display = 'none';
-
-    try {
-        const url = "https://t9jqp2-95-26-207-148.ru.tuna.am/test";
-        const payload = {
-            name: "Хуесос",
-            age: 16
-        };
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload),
-            mode: 'cors'
+    const monthly_expenses = [];
+    if (houseExpenses > 0) {
+        monthly_expenses.push({
+            'Вид расходов': 'Расходы на аренду жилья',
+            'Сумма в месяц, руб.': houseExpenses
         });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Успешный ответ:', data);
-            document.getElementById('successMessage').style.display = 'block';
-        } else {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-    } catch (error) {
-        console.error('Ошибка:', error);
-        showError(`❌ Ошибка отправки: ${error.message}`);
-    } finally {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
     }
+    if (foodExpenses > 0) {
+        monthly_expenses.push({
+            'Вид расходов': 'Расходы на продукты питания',
+            'Сумма в месяц, руб.': foodExpenses
+        });
+    }
+    if (transportExpenses > 0) {
+        monthly_expenses.push({
+            'Вид расходов': 'Расходы на транспорт и гсм',
+            'Сумма в месяц, руб.': transportExpenses
+        });
+    }
+
+    const liabilities = Object.values(liabilitiesData)
+        .filter(item => item.name && item.name.trim() !== '')
+        .map(item => ({
+            'Вид обязательства': item.name || '',
+            'Ежемесячный платеж': item.monthly_payment || 0,
+            'Общая сумма обязательства': item.total_liability || 0
+        }));
+
+    const payload = {
+        type: "liability",
+        fullname: {
+            name: firstName,
+            secondname: lastName,
+            surname: middleName
+        },
+        marital_status: maritalStatus,
+        gender: gender,
+        property: property,
+        sources_of_official_income: sources_of_official_income,
+        monthly_expenses: monthly_expenses,
+        liabilities: liabilities
+    };
+
+    return payload;
 };
-*/
+
 async function handleFormSubmit(e) {
     e.preventDefault();
     
@@ -232,39 +247,34 @@ async function handleFormSubmit(e) {
     document.getElementById('errorMessage').style.display = 'none';
 
     try {
-        // Используем публичный сервис для тестирования
-        const url = "https://httpbin.org/post";
+        // Сериализуем данные формы
+        const formData = new FormData(this);
+        const serializedData = serializeFormData(formData);
         
-        // Собираем реальные данные из формы
-        const formData = new FormData(document.getElementById('loanForm'));
-        const payload = serializeFormData(formData);
-
-        console.log('Отправляемые данные:', payload); // Для отладки
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload),
-            mode: 'cors'
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Успешный ответ:', data);
-            document.getElementById('successMessage').style.display = 'block';
-            
-            // Показываем ответ для отладки
-            showDebugInfo(`Запрос успешно отправлен. Ответ: ${JSON.stringify(data.json, null, 2)}`);
-        } else {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
+        // Вызываем функцию из pdfEdit.js для создания PDF
+        const pdfBytes = await main_function(serializedData);
+        
+        // Создаем Blob из байтов PDF
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        
+        // Находим кнопку для скачивания PDF
+        const downloadBtn = document.getElementById('downloadPdf');
+        
+        // Настраиваем кнопку для скачивания
+        downloadBtn.href = url;
+        downloadBtn.download = 'анкета_заемщика.pdf';
+        downloadBtn.classList.remove('hidden');
+        
+        // Показываем сообщение об успехе
+        document.getElementById('successMessage').style.display = 'block';
+        
     } catch (error) {
-        console.error('Ошибка:', error);
-        showError(`❌ Ошибка отправки: ${error.message}`);
+        console.error('Ошибка при создании PDF:', error);
+        document.getElementById('errorText').textContent = 'Произошла ошибка при создании PDF документа. Пожалуйста, попробуйте еще раз.';
+        document.getElementById('errorMessage').style.display = 'block';
     } finally {
+        // Восстанавливаем кнопку отправки
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }
