@@ -271,7 +271,7 @@ async function handleFormSubmit(e) {
         
     } catch (error) {
         console.error('Ошибка при создании PDF:', error);
-        document.getElementById('errorText').textContent = 'Произошла ошибка при создании PDF документа. Пожалуйста, попробуйте еще раз.';
+        document.getElementById('errorText').textContent = `Произошла ошибка при создании PDF документа. Пожалуйста, попробуйте еще раз. ${error}`;
         document.getElementById('errorMessage').style.display = 'block';
     } finally {
         // Восстанавливаем кнопку отправки
