@@ -181,7 +181,7 @@ async function drawCenteredText(page, text, rectangleArea, font, fontSize, color
 // Универсальная функция для добавления суммы в нужный прямоугольник.
 async function add_amount_in_box(page, rectangleArea, amount, color, textColor, font, moveDistance, is_num=false, fontSize, align = 'center', symbol = "", is_monthly_income = false, boldFont = ""){
     // Подгоняем под текущие задачи rectangleArea.
-    newRectangleArea = {
+    const newRectangleArea = {
         x: rectangleArea.x,
         y: rectangleArea.y - moveDistance,
         width: rectangleArea.width,
@@ -391,7 +391,7 @@ async function drawTable(page, tableData, x, startY, custom_font, custom_bold_fo
     let borderWidth = 0;
     let headers = [];
     let colWidths = [];
-    let totalTableWidth;
+    let totalTableWidth = 0;
     
     if (tableTypeData.type == "income") {
         dataRowHeight = 15;
@@ -723,3 +723,80 @@ async function main_function(data) {
     */
 
 };
+
+// Пример использования
+async function main() {
+    const payload = {
+        type: "liability",
+        fullname: {
+            name: "Дмитрий",
+            secondname: "Хуев",
+            surname: "Юрьевич"
+        },
+        marital_status: "Холост",
+        gender: "Мужской",
+        property: [
+            {
+                'Наименование': "Квартира",
+                'Доля': "",
+                'Совм': "Нет",
+                'Стоимость руб.': 1000000
+            },
+            {
+                'Наименование': "Дом",
+                'Доля': "",
+                'Совм': "Нет",
+                'Стоимость руб.': 500
+            },
+            {
+                'Наименование': "Сарай",
+                'Доля': "",
+                'Совм': "Нет",
+                'Стоимость руб.': 200
+            },
+            {
+                'Наименование': "Подоконник",
+                'Доля': "",
+                'Совм': "Нет",
+                'Стоимость руб.': 100
+            },
+        ],
+        sources_of_official_income: [
+            {
+                "Источник получения дохода": "Работа механиком",
+                "Сумма в месяц, руб.": 20000
+            }
+        ],
+        monthly_expenses: [
+            {
+                "Вид расходов": "Расходы на аренду жилья",
+                "Сумма в месяц, руб.": 45000
+            },
+            {
+                "Вид расходов": "Расходы на продукты питания",
+                "Сумма в месяц, руб.": 25000
+            },
+            {
+                "Вид расходов": "Расходы на транспорт и гсм",
+                "Сумма в месяц, руб.": 80000
+            }
+        ],
+        liabilities: [
+            {
+                'Вид обязательства': "Кредит",
+                'Ежемесячный платеж': 50000,
+                'Общая сумма обязательства': 500000
+            },
+            {
+                'Вид обязательства': "Кредитная карта",
+                'Ежемесячный платеж': 10000,
+                'Общая сумма обязательства': 100000
+            }
+        ]
+    };
+    await main_function(payload)
+    // Пробуем оба подхода
+    //await replaceTableInPDF("test.pdf", "output_margin.pdf", newTableData, table_area_xui, tableData)
+};
+
+main().catch(console.error);
