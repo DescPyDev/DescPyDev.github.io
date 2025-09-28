@@ -701,7 +701,7 @@ async function main_function(data) {
         height: 40
     };
 
-    await page_2_handler.main_draw_2_page(pages[1], pdfDoc, custom_font, custom_bold_font, propertyTableArea, incomeTableArea, data, drawTable);
+    await main_draw_2_page(pages[1], pdfDoc, custom_font, custom_bold_font, propertyTableArea, incomeTableArea, data, drawTable);
 
     // Работает с таблицей "Информация о финансовых обязательствах заемщика". | Page 3
     data.type = "liability"
