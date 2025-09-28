@@ -261,7 +261,7 @@ async function add_blue_circle_and_line_with_name_table(page, custom_bold_font, 
     // Добавляем смещение вверх, если в таблице с обязательствами 1 ед данных.
     let offset = 0;
     if (table_data.liabilities.length == 1) {
-        offset = 15;
+        offset = 10;
     };
 
     if (table_data.liabilities.length == 0) {
