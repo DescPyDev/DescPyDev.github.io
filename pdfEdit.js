@@ -261,7 +261,7 @@ async function add_blue_circle_and_line_with_name_table(page, custom_bold_font, 
     // Добавляем смещение вверх, если в таблице с обязательствами 1 ед данных.
     let offset = 0;
     if (table_data.liabilities.length == 1) {
-        offset = -15;
+        offset = 15;
     };
 
     if (table_data.liabilities.length == 0) {
@@ -350,7 +350,7 @@ async function calculateTableHeight(tableData, headerRowHeight = 25, dataRowHeig
 async function moveContentDown(page, tableArea, newTableArea, moveDistance, pdfDoc, amountFont, bold, tableData) {
     if (moveDistance <= 0) {
         // Заполняем все данные кроме таблицы.
-        await add_blue_circle_and_line_with_name_table(page, bold, tableData, amountFont, newTableArea, moveDistance);
+        //await add_blue_circle_and_line_with_name_table(page, bold, tableData, amountFont, newTableArea, moveDistance);
         return;
     };
     
