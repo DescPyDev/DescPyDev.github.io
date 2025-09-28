@@ -138,6 +138,9 @@ function serializeFormData(formData) {
     };
     const gender = genderMap[genderValue] || genderValue;
     
+    // Получаем количество детей на иждивении
+    const numberOfDependents = parseInt(formData.get('dependents_children')) || 0;
+    
     // Собираем данные по категориям
     const ownershipData = {};
     const incomeData = {};
@@ -226,6 +229,7 @@ function serializeFormData(formData) {
         },
         marital_status: maritalStatus,
         gender: gender,
+        number_of_dependence: numberOfDependents,
         property: property,
         sources_of_official_income: sources_of_official_income,
         monthly_expenses: monthly_expenses,
