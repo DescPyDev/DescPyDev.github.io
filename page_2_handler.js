@@ -20,25 +20,25 @@ async function drawMonthlyIncomeText(page, amount, rectangleArea, regularFont, b
             fontSize: 14,
             font: boldFont,
             yOffset: 2,
-            textColor: rgb(0, 0, 0) // Черный цвет для первого текста
+            textColor: rgb(0, 0, 0)
         },
         {
             text: "на основании данных анкетирования",
             fontSize: 10,
             font: regularFont,
             yOffset: 5,
-            textColor: rgb(0, 0, 0) // Черный цвет для второго текста
+            textColor: rgb(0, 0, 0)
         },
         {
             text: `${symbol}${amount}`,
             fontSize: 28,
             font: amountFont,
             yOffset: 5,
-            textColor: color // Оригинальный цвет для цифры
+            textColor: color
         }
     ];
     
-    let currentY = rectangleArea.y + rectangleArea.height - 4; // Начинаем от верхнего края с отступом 4px
+    let currentY = rectangleArea.y + rectangleArea.height - 4;
     
     const results = [];
     
@@ -57,7 +57,7 @@ async function drawMonthlyIncomeText(page, amount, rectangleArea, regularFont, b
             y: y,
             size: textConfig.fontSize,
             font: textConfig.font,
-            color: textConfig.textColor // Используем индивидуальный цвет для каждого текста
+            color: textConfig.textColor
         });
         
         results.push({
@@ -74,7 +74,7 @@ async function drawMonthlyIncomeText(page, amount, rectangleArea, regularFont, b
         currentY = y;
     }
     
-    return results; // Возвращаем массив результатов для каждого текстового блока
+    return results;
 };
 
 async function drawCenteredText(page, text, rectangleArea, font, fontSize, color, align = 'center', symbol = "", is_monthly_income = false, boldFont, amountFont) {
@@ -683,7 +683,6 @@ async function drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data
         propertyTableData = data.property;
     };
 
-    console.log("Вот данные таблицы имущества: ", propertyTableData);
     data.type = "property";
     const newHeightTableProperty = await calculateTableHeight(data.property, 25, 15);
     const newTableCoordinatesProperty = { x: propertyTableArea.x, y: propertyTableArea.y2 - newHeightTableProperty, width: propertyTableArea.width, height: newHeightTableProperty};
@@ -702,7 +701,6 @@ async function drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data
         ];
     };
 
-    console.log("Вот данные таблицы дохода: ", incomeTableData);
     const newStartY = current_y - 45;
     const newHeightTableIncome = await calculateTableHeight(data.sources_of_official_income, 25, 15);
     const newTableCoordinatesIncome = { x: incomeTableArea.x, y: incomeTableArea.y2 - (newHeightTableIncome + newStartY), width: incomeTableArea.width, height: newHeightTableIncome};
@@ -908,7 +906,6 @@ async function clear_page(page) {
 };
 
 async function main_draw_2_page(page, pdfDoc, font, bold, amountFont, propertyTableArea, incomeTableArea, data, drawTableFunc) {
-    console.log("ВСЕ ПОЛУЧЕННЫЕ ДАННЫЕ: ", data);
     // Стираем всю страницу.
     await clear_page(page);
 
