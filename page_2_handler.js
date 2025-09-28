@@ -908,6 +908,7 @@ async function clear_page(page) {
 };
 
 async function main_draw_2_page(page, pdfDoc, font, bold, amountFont, propertyTableArea, incomeTableArea, data, drawTableFunc) {
+    console.log("ВСЕ ПОЛУЧЕННЫЕ ДАННЫЕ: ", data);
     // Стираем всю страницу.
     await clear_page(page);
 
