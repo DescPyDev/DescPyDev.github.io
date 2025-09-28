@@ -1,3 +1,4 @@
+// Вспомогательные функции.
 async function calculateTableHeight(tableData, headerRowHeight = 25, dataRowHeight = 15) {
     return headerRowHeight + (tableData.length * dataRowHeight);
 };
@@ -682,6 +683,7 @@ async function drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data
         propertyTableData = data.property;
     };
 
+    console.log("Вот данные таблицы имущества: ", propertyTableData);
     data.type = "property";
     const newHeightTableProperty = await calculateTableHeight(data.property, 25, 15);
     const newTableCoordinatesProperty = { x: propertyTableArea.x, y: propertyTableArea.y2 - newHeightTableProperty, width: propertyTableArea.width, height: newHeightTableProperty};
@@ -700,6 +702,7 @@ async function drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data
         ];
     };
 
+    console.log("Вот данные таблицы дохода: ", incomeTableData);
     const newStartY = current_y - 45;
     const newHeightTableIncome = await calculateTableHeight(data.sources_of_official_income, 25, 15);
     const newTableCoordinatesIncome = { x: incomeTableArea.x, y: incomeTableArea.y2 - (newHeightTableIncome + newStartY), width: incomeTableArea.width, height: newHeightTableIncome};
