@@ -535,19 +535,19 @@ async function drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data
 
 async function draw_dawn_content_page(page, data, startY, drawTableFunc, custom_font, custom_bold_font) {
     // Рисуем прямоугольник с галками.
-    monthly_income_data = {
+    const monthly_income_data = {
     rectangleArea: { x: 161, y: 408, width: 276, height: 66}, // y: 492
     color: rgb(0.94, 1, 0.94),
     textColor: rgb(0, 0.58, 0.27)
     };
 
-    monthly_expenses_data = {
+    const monthly_expenses_data = {
         rectangleArea: { x: 63, y: 210, width: 190, height: 40}, // y: 690
         color: rgb(1, 0.89, 0.87),
         textColor: rgb(0.7, 0.12, 0.12)
     };
 
-    remaining_balance_data = {
+    const remaining_balance_data = {
         rectangleArea: { x: 339, y: 210, width: 190, height: 40}, // y: 690,
         color: rgb(0.94, 1, 0.94),
         textColor: rgb(0, 0.58, 0.27)
