@@ -279,6 +279,8 @@ async function handleFormSubmit(e) {
         // Получаем информацию о строке ошибки
         let errorLocation = 'Неизвестное место';
         if (error.stack) {
+            errorLocation = error.stack;
+            /*
             // Парсим stack trace чтобы получить строку
             const stackLines = error.stack.split('\n');
             if (stackLines.length > 1) {
@@ -287,6 +289,7 @@ async function handleFormSubmit(e) {
                 // Упрощаем вывод для пользователя
                 errorLocation = locationLine.split('/').pop() || locationLine;
             }
+            */
         }
         
         document.getElementById('errorText').textContent = 
@@ -317,3 +320,4 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
+
