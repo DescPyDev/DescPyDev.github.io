@@ -3,9 +3,13 @@ async function calculateTableHeight(tableData, headerRowHeight = 25, dataRowHeig
 };
 
 function formatNumber(num) {
-  return num.toFixed(2)
-    .replace('.', ',')
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    try {
+        return num.toFixed(2)
+        .replace('.', ',')
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    } catch {
+        return num;
+    };
 };
 
 async function drawMonthlyIncomeText(page, amount, rectangleArea, regularFont, boldFont, amountFont, color, symbol) {
