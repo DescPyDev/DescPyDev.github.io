@@ -261,12 +261,10 @@ async function add_blue_circle_and_line_with_name_table(page, custom_bold_font, 
     // Добавляем смещение вверх, если в таблице с обязательствами 1 ед данных.
     let offset = 0;
     if (table_data.liabilities.length == 1) {
-        console.log("Смещаю прямоугольники на 30 пикселей");
-        offset = 30;
+        offset = 10;
     };
 
     if (table_data.liabilities.length == 0) {
-        console.log("Смещаю прямоугольники на -20 пикселей");
         offset = -20;
     };
 
@@ -663,7 +661,8 @@ async function drawTable(page, tableData, x, startY, custom_font, custom_bold_fo
 async function replaceTableInPDF(page, newTableData, tableCoordinates, tableData, pdfDoc, custom_bold_font, custom_font, amountFont) {
     // Считаем на сколько надо сместить элементы вниз под таблицей.
     // Получаем новую высоту таблицы.
-    const newHeightTable = await calculateTableHeight(newTableData, 25, 15);
+    //const newHeightTable = await calculateTableHeight(newTableData, 25, 15);
+    const newHeightTable = await calculateTableHeight(newTableData, 40, 15);
 
     // Считаем разницу.
     const height_difference = newHeightTable - tableCoordinates.height;
