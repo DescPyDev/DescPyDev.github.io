@@ -130,14 +130,14 @@ async function drawRectangleWithCheckmarks(page, text, rectangleArea, color, tex
         start: { x: x - 25, y: y + height + 21 },
         end: { x: x - 25, y: y + height + 1 },
         color: rgb(0, 0, 0),
-        thickness: 1,
+        thickness: 1.5,
     });
     // Горизонтальная линия галочки
     page.drawLine({
         start: { x: x - 25, y: y + height + 21 },
         end: { x: x, y: y + height + 21 },
         color: rgb(0, 0, 0),
-        thickness: 1,
+        thickness: 1.5,
     });
 
     // 2) Правый верхний угол
@@ -146,14 +146,14 @@ async function drawRectangleWithCheckmarks(page, text, rectangleArea, color, tex
         start: { x: x + width + 25, y: y + height + 21 },
         end: { x: x + width + 25, y: y + height + 1 },
         color: rgb(0, 0, 0),
-        thickness: 1,
+        thickness: 1.5,
     });
     // Горизонтальная линия галочки
     page.drawLine({
         start: { x: x + width + 25, y: y + height + 21 },
         end: { x: x + width, y: y + height + 21 },
         color: rgb(0, 0, 0),
-        thickness: 1,
+        thickness: 1.5,
     });
 
     // 3) Левый нижний угол
@@ -162,14 +162,14 @@ async function drawRectangleWithCheckmarks(page, text, rectangleArea, color, tex
         start: { x: x - 25, y: y - 21 },
         end: { x: x - 25, y: y - 1 },
         color: rgb(0, 0, 0),
-        thickness: 1,
+        thickness: 1.5,
     });
     // Горизонтальная линия галочки
     page.drawLine({
         start: { x: x - 25, y: y - 21 },
         end: { x: x, y: y - 21 },
         color: rgb(0, 0, 0),
-        thickness: 1,
+        thickness: 1.5,
     });
 
     // 4) Правый нижний угол
@@ -178,14 +178,14 @@ async function drawRectangleWithCheckmarks(page, text, rectangleArea, color, tex
         start: { x: x + width + 25, y: y - 21 },
         end: { x: x + width + 25, y: y - 1 },
         color: rgb(0, 0, 0),
-        thickness: 1,
+        thickness: 1.5,
     });
     // Горизонтальная линия галочки
     page.drawLine({
         start: { x: x + width + 25, y: y - 21 },
         end: { x: x + width, y: y - 21 },
         color: rgb(0, 0, 0),
-        thickness: 1,
+        thickness: 1.5,
     });
 
     // Пишем текст внутри.
@@ -536,9 +536,9 @@ async function drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data
 async function draw_dawn_content_page(page, data, startY, drawTableFunc, custom_font, custom_bold_font) {
     // Рисуем прямоугольник с галками.
     const monthly_income_data = {
-    rectangleArea: { x: 161, y: 408, width: 276, height: 66}, // y: 492
-    color: rgb(0.94, 1, 0.94),
-    textColor: rgb(0, 0.58, 0.27)
+        rectangleArea: { x: 161, y: 408, width: 276, height: 66}, // y: 492
+        color: rgb(0.94, 1, 0.94),
+        textColor: rgb(0, 0.58, 0.27)
     };
 
     const monthly_expenses_data = {
@@ -569,7 +569,6 @@ async function draw_dawn_content_page(page, data, startY, drawTableFunc, custom_
     lastY = await drawRectangleWithCheckmarks(page, `${totalSum}`, newRectangleArea, monthly_income_data.color, monthly_income_data.textColor, custom_font, custom_bold_font, true, "+");
 
     // Рисуем табличку.
-    console.log(`lastY: ${lastY}`);
     expensesTableArea = {
         x: 74,
         y: lastY - 32,
@@ -584,10 +583,11 @@ async function draw_dawn_content_page(page, data, startY, drawTableFunc, custom_
 
     // Рисуем остальные 2 прямоугольника.
     // Рисуем прямоугольник месячных трат.
+    console.log(`lastY: ${lastY}`);
     const totalExpenses = data.monthly_expenses.reduce((acc, item) => acc + item["Сумма в месяц, руб."], 0);
     newRectangleArea = {
         x: monthly_expenses_data.rectangleArea.x,
-        y: monthly_expenses_data.rectangleArea.y - lastY,
+        y: lastY - 95,
         width: monthly_expenses_data.rectangleArea.width,
         height: monthly_expenses_data.rectangleArea.height
     };
@@ -598,7 +598,7 @@ async function draw_dawn_content_page(page, data, startY, drawTableFunc, custom_
     const remaining_balance_Value = totalSum - totalExpenses;
     newRectangleArea = {
         x: remaining_balance_data.rectangleArea.x,
-        y: remaining_balance_data.rectangleArea.y - lastY,
+        y: lastY - 95,
         width: remaining_balance_data.rectangleArea.width,
         height: remaining_balance_data.rectangleArea.height
     };
