@@ -574,8 +574,7 @@ async function drawTable(page, tableData, x, startY, custom_font, custom_bold_fo
 
         // Данные ячеек
         headers.forEach((header, colIndex) => {
-            const cellValue = formatNumber(row[header]);
-            console.log(`cellValue: ${cellValue}`);
+            const cellValue = formatNumber(row[header]) ?? "";
             
             // Выравнивание текста
             let textX = currentX + 5;
