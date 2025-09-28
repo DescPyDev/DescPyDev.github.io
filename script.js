@@ -178,14 +178,14 @@ function serializeFormData(formData) {
             'Наименование': item.name || '',
             'Доля': "",
             'Совм': item.is_jointly ? "Да" : "Нет",
-            'Стоимость руб.': item.cost || 0
+            'Стоимость': item.cost || 0
         }));
 
     const sources_of_official_income = Object.values(incomeData)
         .filter(item => item.name && item.name.trim() !== '')
         .map(item => ({
             'Источник получения дохода': item.name || '',
-            'Сумма в месяц, руб.': item.salary || 0
+            'Сумма в месяц': item.salary || 0
         }));
 
     const houseExpenses = parseInt(formData.get('house_expenses')) || 0;
@@ -196,19 +196,19 @@ function serializeFormData(formData) {
     if (houseExpenses > 0) {
         monthly_expenses.push({
             'Вид расходов': 'Расходы на аренду жилья',
-            'Сумма в месяц, руб.': houseExpenses
+            'Сумма в месяц': houseExpenses
         });
     }
     if (foodExpenses > 0) {
         monthly_expenses.push({
             'Вид расходов': 'Расходы на продукты питания',
-            'Сумма в месяц, руб.': foodExpenses
+            'Сумма в месяц': foodExpenses
         });
     }
     if (transportExpenses > 0) {
         monthly_expenses.push({
             'Вид расходов': 'Расходы на транспорт и гсм',
-            'Сумма в месяц, руб.': transportExpenses
+            'Сумма в месяц': transportExpenses
         });
     }
 
@@ -280,7 +280,6 @@ async function handleFormSubmit(e) {
         let errorLocation = 'Неизвестное место';
         if (error.stack) {
             errorLocation = error.stack;
-            /*
             // Парсим stack trace чтобы получить строку
             const stackLines = error.stack.split('\n');
             if (stackLines.length > 1) {
@@ -289,7 +288,6 @@ async function handleFormSubmit(e) {
                 // Упрощаем вывод для пользователя
                 errorLocation = locationLine.split('/').pop() || locationLine;
             }
-            */
         }
         
         document.getElementById('errorText').textContent = 
@@ -320,4 +318,3 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
-
