@@ -661,8 +661,7 @@ async function drawTable(page, tableData, x, startY, custom_font, custom_bold_fo
 async function replaceTableInPDF(page, newTableData, tableCoordinates, tableData, pdfDoc, custom_bold_font, custom_font, amountFont) {
     // Считаем на сколько надо сместить элементы вниз под таблицей.
     // Получаем новую высоту таблицы.
-    //const newHeightTable = await calculateTableHeight(newTableData, 25, 15);
-    const newHeightTable = await calculateTableHeight(newTableData, 40, 15);
+    const newHeightTable = await calculateTableHeight(newTableData, 25, 15);
 
     // Считаем разницу.
     const height_difference = newHeightTable - tableCoordinates.height;
