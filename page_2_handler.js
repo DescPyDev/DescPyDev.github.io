@@ -1,9 +1,14 @@
-// Вспомогательные функции.
 async function calculateTableHeight(tableData, headerRowHeight = 25, dataRowHeight = 15) {
     return headerRowHeight + (tableData.length * dataRowHeight);
 };
 
-async function drawMonthlyIncomeText(page, amount, rectangleArea, regularFont, boldFont, color, symbol) {
+function formatNumber(num) {
+  return num.toFixed(2)
+    .replace('.', ',')
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+};
+
+async function drawMonthlyIncomeText(page, amount, rectangleArea, regularFont, boldFont, amountFont, color, symbol) {
     const texts = [
         {
             text: "Ваш ежемесячный доход",
@@ -22,7 +27,7 @@ async function drawMonthlyIncomeText(page, amount, rectangleArea, regularFont, b
         {
             text: `${symbol}${amount}`,
             fontSize: 28,
-            font: boldFont,
+            font: amountFont,
             yOffset: 5,
             textColor: color // Оригинальный цвет для цифры
         }
@@ -67,10 +72,10 @@ async function drawMonthlyIncomeText(page, amount, rectangleArea, regularFont, b
     return results; // Возвращаем массив результатов для каждого текстового блока
 };
 
-async function drawCenteredText(page, text, rectangleArea, font, fontSize, color, align = 'center', symbol = "", is_monthly_income = false, boldFont) {
+async function drawCenteredText(page, text, rectangleArea, font, fontSize, color, align = 'center', symbol = "", is_monthly_income = false, boldFont, amountFont) {
     // Если это ежемесячный доход, используем специальное форматирование
     if (is_monthly_income) {
-        return await drawMonthlyIncomeText(page, text, rectangleArea, font, boldFont, color, symbol);
+        return await drawMonthlyIncomeText(page, text, rectangleArea, font, boldFont, amountFont, color, symbol);
     }
     
     // Стандартное форматирование для остальных случаев
@@ -112,84 +117,168 @@ async function drawCenteredText(page, text, rectangleArea, font, fontSize, color
     return { x, y, textWidth, textHeight, align };
 };
 
-async function drawRectangleWithCheckmarks(page, text, rectangleArea, color, textColor, custom_font, custom_bold_font, is_monthly_income = false, symbol="") {
+async function drawRectangleWithCheckmarks(page, text, rectangleArea, color, textColor, custom_font, custom_bold_font, amountFont, is_monthly_income = false, symbol = "", is_text_in_box = "") {
     const { x, y, width, height } = rectangleArea;
+
+    let YOffset = 0;
+    if (is_text_in_box != "") {
+        YOffset = 17; 
+    };
 
     // Рисуем основной прямоугольник
     page.drawRectangle({
         x: x,
-        y: y,
+        y: y - YOffset,
         width: width,
         height: height,
         color: color
     });
 
-    // 1) Левый верхний угол
+    // Если is_text_in_box = true, обрабатываем текст как массив
+    let checkmarkYOffset = 0;
+    let textElements = [];
+
+    if (is_text_in_box != "" && Array.isArray(text)) {
+        // Рассчитываем высоту для смещения галочек
+        checkmarkYOffset = 40; // Достаточно места для двух строк текста
+        
+        // Собираем текстовые элементы для отрисовки
+        textElements = [
+            {
+                text: text[0],
+                font: custom_bold_font,
+                color: rgb(0, 0, 0),
+                size: 12
+            },
+            {
+                text: text[1],
+                font: custom_bold_font,
+                color: rgb(0, 0, 0),
+                size: 12
+            },
+            {
+                text: text[2],
+                font: custom_font,
+                color: rgb(0, 0, 0),
+                size: 10
+            }
+        ];
+    }
+
+    // 1) Левый верхний угол (смещенные галочки)
     // Вертикальная линия галочки
     page.drawLine({
-        start: { x: x - 25, y: y + height + 21 },
-        end: { x: x - 25, y: y + height + 1 },
-        color: rgb(0, 0, 0),
+        start: { x: x - 25, y: y + height + 21 + (checkmarkYOffset - YOffset) },
+        end: { x: x - 25, y: y + height + 1 + (checkmarkYOffset - YOffset) },
         thickness: 1.5,
     });
     // Горизонтальная линия галочки
     page.drawLine({
-        start: { x: x - 25, y: y + height + 21 },
-        end: { x: x, y: y + height + 21 },
-        color: rgb(0, 0, 0),
+        start: { x: x - 25, y: y + height + 21 + (checkmarkYOffset - YOffset) },
+        end: { x: x, y: y + height + 21 + (checkmarkYOffset - YOffset) },
         thickness: 1.5,
     });
 
-    // 2) Правый верхний угол
+    // 2) Правый верхний угол (смещенные галочки)
     // Вертикальная линия галочки
     page.drawLine({
-        start: { x: x + width + 25, y: y + height + 21 },
-        end: { x: x + width + 25, y: y + height + 1 },
-        color: rgb(0, 0, 0),
+        start: { x: x + width + 25, y: y + height + 21 + (checkmarkYOffset - YOffset) },
+        end: { x: x + width + 25, y: y + height + 1 + (checkmarkYOffset - YOffset) },
         thickness: 1.5,
     });
     // Горизонтальная линия галочки
     page.drawLine({
-        start: { x: x + width + 25, y: y + height + 21 },
-        end: { x: x + width, y: y + height + 21 },
-        color: rgb(0, 0, 0),
+        start: { x: x + width + 25, y: y + height + 21 + (checkmarkYOffset - YOffset) },
+        end: { x: x + width, y: y + height + 21 + (checkmarkYOffset - YOffset) },
         thickness: 1.5,
     });
 
     // 3) Левый нижний угол
-    // Вертикальная линия галочки
     page.drawLine({
-        start: { x: x - 25, y: y - 21 },
-        end: { x: x - 25, y: y - 1 },
-        color: rgb(0, 0, 0),
+        start: { x: x - 25, y: y - (21 + YOffset) },
+        end: { x: x - 25, y: y - (1 + YOffset) },
         thickness: 1.5,
     });
-    // Горизонтальная линия галочки
     page.drawLine({
-        start: { x: x - 25, y: y - 21 },
-        end: { x: x, y: y - 21 },
-        color: rgb(0, 0, 0),
+        start: { x: x - 25, y: y - (21 + YOffset) },
+        end: { x: x, y: y - (21 + YOffset) },
         thickness: 1.5,
     });
 
     // 4) Правый нижний угол
-    // Вертикальная линия галочки
     page.drawLine({
-        start: { x: x + width + 25, y: y - 21 },
-        end: { x: x + width + 25, y: y - 1 },
-        color: rgb(0, 0, 0),
+        start: { x: x + width + 25, y: y - (21 + YOffset) },
+        end: { x: x + width + 25, y: y - (1 + YOffset) },
         thickness: 1.5,
     });
-    // Горизонтальная линия галочки
     page.drawLine({
-        start: { x: x + width + 25, y: y - 21 },
-        end: { x: x + width, y: y - 21 },
-        color: rgb(0, 0, 0),
+        start: { x: x + width + 25, y: y - (21 + YOffset) },
+        end: { x: x + width, y: y - (21 + YOffset) },
         thickness: 1.5,
     });
 
-    // Пишем текст внутри.
-    await drawCenteredText(page, text, rectangleArea, custom_font, 28, textColor, "center", symbol, is_monthly_income, custom_bold_font);
+    // Отрисовка текста внутри галочек (если is_text_in_box = true)
+    if (is_text_in_box && textElements.length > 0) {
+        const thirdTextY = (y - YOffset) + height + 2;
+        const secondTextY = thirdTextY + 20;
+        const firstTextY = secondTextY + 10;
+
+        let textCoordinates;
+        if (is_text_in_box == "remaining") {
+            textCoordinates = {
+                x1: 359,
+                y1: firstTextY,
+                x2: 344,
+                y2: thirdTextY,
+                x3: 377,
+                y3: secondTextY
+            };
+        } else {
+            textCoordinates = {
+                x1: 78,
+                y1: firstTextY,
+                x2: 106,
+                y2: thirdTextY,
+                x3: 134,
+                y3: secondTextY
+            };
+        };
+
+        // Отрисовываем первый текст.
+        page.drawText(textElements[0].text, {
+            x: textCoordinates.x1,
+            y: textCoordinates.y1,
+            color: rgb(0, 0, 0),
+            size: 12,
+            font: custom_bold_font
+        });
+
+        // Отрисовываем второй текст.
+        page.drawText(textElements[1].text, {
+            x: textCoordinates.x3,
+            y: textCoordinates.y3,
+            color: rgb(0, 0, 0),
+            size: 12,
+            font: custom_bold_font
+        });
+
+        // Отрисовываем третий текст.
+        page.drawText(textElements[2].text, {
+            x: textCoordinates.x2,
+            y: textCoordinates.y2,
+            color: rgb(0, 0, 0),
+            size: 10,
+            font: custom_font
+        });
+    }
+
+    // Пишем основной текст внутри прямоугольника (третий элемент массива или обычный текст)
+    const mainText = is_text_in_box ? text[3] : text;
+    if (is_text_in_box) {
+        rectangleArea.y = rectangleArea.y - YOffset;
+    };
+
+    await drawCenteredText(page, mainText, rectangleArea, custom_font, 28, textColor, "center", symbol, is_monthly_income, custom_bold_font, amountFont);
 
     return y - 21;
 };
@@ -479,7 +568,7 @@ async function draw_personal_data(page, font, bold, data) {
     page.drawRectangle({
         x: 434,
         y: 630,
-        width: 148,
+        width: 122,
         height: 25,
         color: rgb(0.85, 0.85, 0.85)
     });
@@ -491,11 +580,20 @@ async function draw_personal_data(page, font, bold, data) {
         color: rgb(0, 0, 0)
     });
 
+    // Вписываем детей на иждивении.
+    page.drawText(`${data.number_of_dependence}`, {
+        x: 437,
+        y: 617,
+        font: bold,
+        size: 11,
+        color: rgb(0, 0, 0)
+    });
+
     // Вписываем полных лет.
     page.drawRectangle({
         x: 434,
         y: 671,
-        width: 148,
+        width: 122,
         height: 14,
         color: rgb(0.85, 0.85, 0.85)
     });
@@ -508,32 +606,107 @@ async function draw_personal_data(page, font, bold, data) {
     });
 
     // ######### Рисуем окантовку прямоугольников #########.
+    // Рисуем линию под фамилией.
+    page.drawLine({
+        start: { x: 152, y: 686},
+        end: { x: 300, y: 686}
+    });
+
+    // Рисуем линию под именем.
+    page.drawLine({
+        start: { x: 152, y: 671},
+        end: { x: 300, y: 671}
+    });
+
+    // Рисуем линию под отчеством.
+    page.drawLine({
+        start: { x: 152, y: 656},
+        end: { x: 300, y: 656}
+    });
+
+    // Рисуем линию под прежней фамилией.
+    page.drawLine({
+        start: { x: 152, y: 629},
+        end: { x: 300, y: 629}
+    });
+
+    // Рисуем линию под датой рождения.
+    page.drawLine({
+        start: { x: 435, y: 686},
+        end: { x: 555, y: 686}
+    });
+
+    // Рисуем линию под полных лет.
+    page.drawLine({
+        start: { x: 435, y: 671},
+        end: { x: 555, y: 671}
+    });
+
+    // Рисуем линию под семейным положением.
+    page.drawLine({
+        start: { x: 435, y: 656},
+        end: { x: 555, y: 656}
+    });
+
+    // Рисуем линию под полом.
+    page.drawLine({
+        start: { x: 435, y: 629},
+        end: { x: 555, y: 629}
+    });
+
+    // Рисуем линию под детьми на иждивении.
+    page.drawLine({
+        start: { x: 435, y: 614},
+        end: { x: 555, y: 614}
+    });
 
 };
 
-async function drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data, drawTableFunc, custom_font, custom_bold_font) {
+async function drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data, drawTableFunc, custom_font, custom_bold_font, amountFont) {
     // Рисуем таблицу имущества.
     let current_y;
+    let propertyTableData = [
+        {
+        'Наименование': "Наименование (описание вида имущества)",
+        'Доля': "",
+        'Совм': "Нет",
+        'Стоимость': ""
+        }
+    ];
+
+    if (data.property.length > 0) {
+        propertyTableData = data.property;
+    };
+
     data.type = "property";
     const newHeightTableProperty = await calculateTableHeight(data.property, 25, 15);
     const newTableCoordinatesProperty = { x: propertyTableArea.x, y: propertyTableArea.y2 - newHeightTableProperty, width: propertyTableArea.width, height: newHeightTableProperty};
-    current_y = await drawTableFunc(page, data.property, propertyTableArea.x, propertyTableArea.y1, custom_font, custom_bold_font, data, propertyTableArea, newTableCoordinatesProperty);
+    console.log(`Нижняя y координата таблицы property: ${newTableCoordinatesProperty.y}`);
+    current_y = await drawTableFunc(page, propertyTableData, propertyTableArea.x, propertyTableArea.y1, custom_font, custom_bold_font, amountFont, data, propertyTableArea, newTableCoordinatesProperty);
 
     // Рисуем таблицу доходов.
     data.type = "income";
+    let incomeTableData = data.sources_of_official_income;
+    if (data.sources_of_official_income.length == 0) {
+        incomeTableData = [
+            {
+                'Источник получения дохода': "источник получения дохода заёмщика",
+                'Сумма в месяц': "Сумма в месяц"
+            }
+        ];
+    };
+
     const newStartY = current_y - 45;
     const newHeightTableIncome = await calculateTableHeight(data.sources_of_official_income, 25, 15);
     const newTableCoordinatesIncome = { x: incomeTableArea.x, y: incomeTableArea.y2 - (newHeightTableIncome + newStartY), width: incomeTableArea.width, height: newHeightTableIncome};
-    current_y = await drawTableFunc(page, data.sources_of_official_income, incomeTableArea.x, newStartY, custom_font, custom_bold_font, data, incomeTableArea, newTableCoordinatesIncome);
-
-    // Рисуем пропущенные элементы.
-    await draw_missing_elements(page, pdfDoc, newTableCoordinatesProperty, newTableCoordinatesIncome, custom_font, custom_bold_font, newStartY);
+    console.log(`Нижняя y координата таблицы income: ${newTableCoordinatesIncome.y}`);
+    current_y = await drawTableFunc(page, incomeTableData, incomeTableArea.x, newStartY, custom_font, custom_bold_font, amountFont, data, incomeTableArea, newTableCoordinatesIncome);
 
     // Рисуем нижний контент.
-    await draw_dawn_content_page(page, data, current_y, drawTableFunc, custom_font, custom_bold_font);
+    await draw_dawn_content_page(page, pdfDoc, data, current_y, drawTableFunc, custom_font, custom_bold_font, amountFont, newTableCoordinatesProperty, newTableCoordinatesIncome, newStartY);
 };
 
-async function draw_dawn_content_page(page, data, startY, drawTableFunc, custom_font, custom_bold_font) {
+async function draw_dawn_content_page(page, pdfDoc, data, startY, drawTableFunc, custom_font, custom_bold_font, amountFont, newTableCoordinatesProperty, newTableCoordinatesIncome, newStartY) {
     // Рисуем прямоугольник с галками.
     const monthly_income_data = {
         rectangleArea: { x: 161, y: 408, width: 276, height: 66}, // y: 492
@@ -564,12 +737,12 @@ async function draw_dawn_content_page(page, data, startY, drawTableFunc, custom_
 
     // Рисуем прямоугольник месячных заработков.
     // Считаем доход в месяц.
-    const totalSum = data.sources_of_official_income.reduce((acc, item) => acc + item["Сумма в месяц, руб."], 0);
+    const totalSum = data.sources_of_official_income.reduce((acc, item) => acc + item["Сумма в месяц"], 0);
     let lastY;
-    lastY = await drawRectangleWithCheckmarks(page, `${totalSum}`, newRectangleArea, monthly_income_data.color, monthly_income_data.textColor, custom_font, custom_bold_font, true, "+");
+    lastY = await drawRectangleWithCheckmarks(page, formatNumber(totalSum), newRectangleArea, monthly_income_data.color, monthly_income_data.textColor, custom_font, custom_bold_font, amountFont, true, "+");
 
     // Рисуем табличку.
-    expensesTableArea = {
+    const expensesTableArea = {
         x: 74,
         y: lastY - 32,
         width: 482,
@@ -577,14 +750,14 @@ async function draw_dawn_content_page(page, data, startY, drawTableFunc, custom_
     };
     data.type = "expenses";
     const newHeightTableExpenses = await calculateTableHeight(data.monthly_expenses, 12, 12);
-    newTableCoordinatesExpenses = { x: newHeightTableExpenses.x, y: newHeightTableExpenses.y2 - (newHeightTableExpenses + lastY), width: newHeightTableExpenses.width, height: newHeightTableExpenses};
-    lastY = await drawTableFunc(page, data.monthly_expenses, expensesTableArea.x, expensesTableArea.y, custom_font, custom_bold_font, data, expensesTableArea, newTableCoordinatesExpenses);
+    const newTableCoordinatesExpenses = { x: expensesTableArea.x, y: expensesTableArea.y, width: expensesTableArea.width, height: newHeightTableExpenses};
+    lastY = await drawTableFunc(page, data.monthly_expenses, expensesTableArea.x, expensesTableArea.y, custom_font, custom_bold_font, amountFont, data, expensesTableArea, newTableCoordinatesExpenses);
     
 
     // Рисуем остальные 2 прямоугольника.
     // Рисуем прямоугольник месячных трат.
     console.log(`lastY: ${lastY}`);
-    const totalExpenses = data.monthly_expenses.reduce((acc, item) => acc + item["Сумма в месяц, руб."], 0);
+    const totalExpenses = data.monthly_expenses.reduce((acc, item) => acc + item["Сумма в месяц"], 0);
     newRectangleArea = {
         x: monthly_expenses_data.rectangleArea.x,
         y: lastY - 95,
@@ -592,7 +765,15 @@ async function draw_dawn_content_page(page, data, startY, drawTableFunc, custom_
         height: monthly_expenses_data.rectangleArea.height
     };
 
-    await drawRectangleWithCheckmarks(page, `${totalExpenses}`, newRectangleArea, monthly_expenses_data.color, monthly_expenses_data.textColor, custom_font, custom_bold_font, false, "-");
+    // Формируем массив с текстами для всех расходов.
+    const expensesTexts = [
+        "Регулярные ежемесячные",
+        "расходы",
+        "первой необходимости",
+        formatNumber(totalExpenses)
+    ];
+
+    await drawRectangleWithCheckmarks(page, expensesTexts, newRectangleArea, monthly_expenses_data.color, monthly_expenses_data.textColor, custom_font, custom_bold_font, amountFont, false, "-", "expenses");
 
     // Рисуем прямоугольник ежемесячного профицита.
     const remaining_balance_Value = totalSum - totalExpenses;
@@ -602,10 +783,21 @@ async function draw_dawn_content_page(page, data, startY, drawTableFunc, custom_
         width: remaining_balance_data.rectangleArea.width,
         height: remaining_balance_data.rectangleArea.height
     };
-    await drawRectangleWithCheckmarks(page, remaining_balance_Value, newRectangleArea, remaining_balance_data.color, remaining_balance_data.textColor, custom_font, custom_bold_font);
+
+    // Формируем массив с текстами для ежемесячного профицита.
+    const remainingBalanceTexts = [
+        "Ежемесячный профицит",
+        "бюджета заемщика",
+        "без учета оплат по долговым обяз-вам",
+        formatNumber(remaining_balance_Value)
+    ];
+    await drawRectangleWithCheckmarks(page, remainingBalanceTexts, newRectangleArea, remaining_balance_data.color, remaining_balance_data.textColor, custom_font, custom_bold_font, amountFont, false, "", "remaining");
+
+    // Рисуем пропущенные элементы.
+    await draw_missing_elements(page, pdfDoc, newTableCoordinatesProperty, newTableCoordinatesIncome, newTableCoordinatesExpenses, custom_font, custom_bold_font, newStartY)
 };
 
-async function draw_missing_elements(page, pdfDoc, newTableCoordinatesProperty, newTableCoordinatesIncome, font, bold, newStartY) {
+async function draw_missing_elements(page, pdfDoc, newTableCoordinatesProperty, newTableCoordinatesIncome, newTableCoordinatesExpenses, font, bold, newStartY) {
     // Скачиваем картирнки.
     const car_url = "https://i.ibb.co/N2wtbprH/car-image-mfpc.png";
     const bage_url = "https://i.ibb.co/jZx02yRz/bage-image-mfpc.png";
@@ -617,11 +809,13 @@ async function draw_missing_elements(page, pdfDoc, newTableCoordinatesProperty, 
     const pngImage_bage = await pdfDoc.embedPng(pngImageBytes_bage);
 
     // Размещаем картинку с машиной.
+    // Вычисляем позицию последней строки таблицы property
+    const carIconY = newTableCoordinatesProperty.y - (newTableCoordinatesProperty.height / 2) + 8; // Центрируем по высоте строки
     page.drawImage(pngImage_car, {
-        x: 44,
-        y: newTableCoordinatesProperty.y + 3,
+        x: newTableCoordinatesProperty.x - 34, // 10px отступа + 24px ширина иконки
+        y: carIconY,
         width: 24,
-        height: 15
+        height: 20
     });
 
     // Рисуем линию для таблицы с имуществом.
@@ -657,9 +851,40 @@ async function draw_missing_elements(page, pdfDoc, newTableCoordinatesProperty, 
     // Размещаем картинку с бейджем.
     page.drawImage(pngImage_bage, {
         x: 44,
-        y: newStartY - newTableCoordinatesIncome.height,
+        y: newStartY - (newTableCoordinatesIncome.height + 5) + 5,
         width: 24,
-        height: 18
+        height: 20
+    });
+
+    // Рисуем красные кружки.
+    // Рисуем первый кружочек (нижний).
+    page.drawCircle({
+        x: 58,
+        y: (newTableCoordinatesExpenses.y + 6) - newTableCoordinatesExpenses.height,
+        size: 4.5,
+        borderWidth: 1,
+        borderColor: rgb(0.87, 0.25, 0.21),
+        color: rgb(1, 0.4, 0.25),
+    });
+
+    // Рисуем второй кружочек (средний).
+    page.drawCircle({
+        x: 58,
+        y: (newTableCoordinatesExpenses.y + 18) - newTableCoordinatesExpenses.height,
+        size: 4.5,
+        borderWidth: 1,
+        borderColor: rgb(0.87, 0.25, 0.21),
+        color: rgb(1, 0.4, 0.25),
+    });
+
+    // Рисуем третий кружочек (верхний).
+    page.drawCircle({
+        x: 58,
+        y: (newTableCoordinatesExpenses.y + 30) - newTableCoordinatesExpenses.height,
+        size: 4.5,
+        borderWidth: 1,
+        borderColor: rgb(0.87, 0.25, 0.21),
+        color: rgb(1, 0.4, 0.25),
     });
 };
 
@@ -675,7 +900,7 @@ async function clear_page(page) {
     });
 };
 
-async function main_draw_2_page(page, pdfDoc, font, bold, propertyTableArea, incomeTableArea, data, drawTableFunc) {
+async function main_draw_2_page(page, pdfDoc, font, bold, amountFont, propertyTableArea, incomeTableArea, data, drawTableFunc) {
     // Стираем всю страницу.
     await clear_page(page);
 
@@ -686,5 +911,5 @@ async function main_draw_2_page(page, pdfDoc, font, bold, propertyTableArea, inc
     await draw_personal_data(page, font, bold, data);
 
     // Рисуем таблицы.
-    await drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data, drawTableFunc, font, bold);
+    await drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data, drawTableFunc, font, bold, amountFont);
 };
