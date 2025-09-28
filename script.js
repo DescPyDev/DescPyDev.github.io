@@ -271,8 +271,27 @@ async function handleFormSubmit(e) {
         
     } catch (error) {
         console.error('Ошибка при создании PDF:', error);
-        document.getElementById('errorText').textContent = `Произошла ошибка при создании PDF документа. Пожалуйста, попробуйте еще раз. ${error}`;
+        
+        // Получаем информацию о строке ошибки
+        let errorLocation = 'Неизвестное место';
+        if (error.stack) {
+            // Парсим stack trace чтобы получить строку
+            const stackLines = error.stack.split('\n');
+            if (stackLines.length > 1) {
+                // Берем вторую строку (первая - сообщение, вторая - место ошибки)
+                const locationLine = stackLines[1].trim();
+                // Упрощаем вывод для пользователя
+                errorLocation = locationLine.split('/').pop() || locationLine;
+            }
+        }
+        
+        document.getElementById('errorText').textContent = 
+            `Произошла ошибка при создании PDF документа. 
+             Ошибка: ${error.message}
+             Место: ${errorLocation}
+             Пожалуйста, попробуйте еще раз.`;
         document.getElementById('errorMessage').style.display = 'block';
+        
     } finally {
         // Восстанавливаем кнопку отправки
         submitBtn.textContent = originalText;
@@ -294,3 +313,4 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
+
