@@ -254,6 +254,13 @@ async function add_blue_circle_and_line_with_name_table(page, custom_bold_font, 
     const totalLiabilities = table_data.sources_of_official_income.reduce((acc, item) => acc + item["Сумма в месяц, руб."], 0);
     const totalExpenses = table_data.monthly_expenses.reduce((acc, item) => acc + item["Сумма в месяц, руб."], 0);
     const remainingBalanceValue = totalLiabilities - totalExpenses;
+
+    // Добавляем смещение вверх, если в таблице с обязательствами 1 ед данных.
+    let offset = 0;
+    if (table_data.liabilities.length <= 1) {
+        offset = 10;
+    };
+
     await add_amount_in_box(
         page,
         amount_liabilities_data.rectangleArea,
@@ -261,7 +268,7 @@ async function add_blue_circle_and_line_with_name_table(page, custom_bold_font, 
         amount_liabilities_data.color,
         amount_liabilities_data.textColor,
         custom_bold_font,
-        moveDistance,
+        moveDistance - offset,
         true,
         28
     );
@@ -273,7 +280,7 @@ async function add_blue_circle_and_line_with_name_table(page, custom_bold_font, 
         remaining_balance_data.color,
         remaining_balance_data.textColor,
         custom_bold_font,
-        moveDistance,
+        moveDistance - offset,
         true,
         28
     );
@@ -286,7 +293,7 @@ async function add_blue_circle_and_line_with_name_table(page, custom_bold_font, 
         monthly_payment_data.color,
         monthly_payment_data.textColor,
         custom_bold_font,
-        moveDistance,
+        moveDistance - offset,
         true,
         28
     );
@@ -299,7 +306,7 @@ async function add_blue_circle_and_line_with_name_table(page, custom_bold_font, 
         remaining_balance_yearly_data.color,
         remaining_balance_yearly_data.textColor,
         custom_bold_font,
-        moveDistance,
+        moveDistance - offset,
         true,
         28
     );
@@ -718,8 +725,7 @@ async function main_function(data) {
     const pdfBytes = await pdfDoc.save();
     return pdfBytes;
     /*
-    fs.writeFileSync("xuesos.pdf", pdfBytes);
+    fs.writeFileSync(outputPath, pdfBytes);
     console.log(`PDF обновлен: ${outputPath}`);
     */
-
 };
