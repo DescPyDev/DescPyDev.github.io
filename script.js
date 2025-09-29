@@ -116,6 +116,7 @@ function showError(message) {
 
 function serializeFormData(formData) {
     // Получаем значения из формы
+    const dealId = formData.get('deal_id') || '';
     const lastName = formData.get('last_name') || '';
     const firstName = formData.get('first_name') || '';
     const middleName = formData.get('middle_name') || '';
@@ -222,6 +223,7 @@ function serializeFormData(formData) {
 
     const payload = {
         type: "liability",
+        dealId: dealId,
         fullname: {
             name: firstName,
             secondname: lastName,
@@ -256,20 +258,6 @@ async function handleFormSubmit(e) {
         const serializedData = serializeFormData(formData);
 
         // Отправляем лида в CRM.
-        /*
-        const leadData = {
-            TITLE: "Новый тестовый лид 2",
-            NAME: "Иван2",
-            LAST_NAME: "Иванов2",
-            PHONE: [{ VALUE: "+79123456789", VALUE_TYPE: "WORK" }],
-            EMAIL: [{ VALUE: "ivan@example.com", VALUE_TYPE: "WORK" }],
-            SOURCE_ID: "TEST",
-            SOURCE_DESCRIPTION: "Тестовая заявка 2",
-            COMMENTS: "Тестовый комментарий 2"
-        };
-
-        const res = await createLead(leadData);
-        */
         
         // Вызываем функцию из pdfEdit.js для создания PDF
         const pdfBytes = await main_function(serializedData);
@@ -334,4 +322,3 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
-
