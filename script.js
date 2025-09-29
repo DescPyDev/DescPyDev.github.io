@@ -254,6 +254,20 @@ async function handleFormSubmit(e) {
         // Сериализуем данные формы
         const formData = new FormData(this);
         const serializedData = serializeFormData(formData);
+
+        // Отправляем лида в CRM.
+        const leadData = {
+            TITLE: "Новый тестовый лид 2",
+            NAME: "Иван2",
+            LAST_NAME: "Иванов2",
+            PHONE: [{ VALUE: "+79123456789", VALUE_TYPE: "WORK" }],
+            EMAIL: [{ VALUE: "ivan@example.com", VALUE_TYPE: "WORK" }],
+            SOURCE_ID: "TEST",
+            SOURCE_DESCRIPTION: "Тестовая заявка 2",
+            COMMENTS: "Тестовый комментарий 2"
+        };
+
+        const res = await createLead(leadData);
         
         // Вызываем функцию из pdfEdit.js для создания PDF
         const pdfBytes = await main_function(serializedData);
