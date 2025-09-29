@@ -256,6 +256,7 @@ async function handleFormSubmit(e) {
         const serializedData = serializeFormData(formData);
 
         // Отправляем лида в CRM.
+        /*
         const leadData = {
             TITLE: "Новый тестовый лид 2",
             NAME: "Иван2",
@@ -268,6 +269,7 @@ async function handleFormSubmit(e) {
         };
 
         const res = await createLead(leadData);
+        */
         
         // Вызываем функцию из pdfEdit.js для создания PDF
         const pdfBytes = await main_function(serializedData);
@@ -332,3 +334,4 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateTotals);
     });
 });
+
