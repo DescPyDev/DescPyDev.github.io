@@ -4,6 +4,20 @@ let ownershipCount = 0;
 let incomeCount = 0;
 let liabilityCount = 0;
 
+// Вспомогательные функции.
+async function pdfToBase64(pdfBytes) {
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            // Убираем data:application/pdf;base64, префикс
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+        };
+        reader.readAsDataURL(blob);
+    });
+};
+
 function addOwnershipItem() {
     ownershipCount++;
     const item = document.createElement('div');
@@ -256,11 +270,12 @@ async function handleFormSubmit(e) {
         // Сериализуем данные формы
         const formData = new FormData(this);
         const serializedData = serializeFormData(formData);
-
-        // Отправляем лида в CRM.
         
         // Вызываем функцию из pdfEdit.js для создания PDF
         const pdfBytes = await main_function(serializedData);
+
+        // Добавляем полученный PDF файл в сделку в битриксе.
+        await mainUpdateDealPdf(serializedData.dealId, await pdfToBase64(pdfBytes));
         
         // Создаем Blob из байтов PDF
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -287,7 +302,7 @@ async function handleFormSubmit(e) {
             // Парсим stack trace чтобы получить строку
             const stackLines = error.stack.split('\n');
             if (stackLines.length > 1) {
-                // Берем вторую строку (первая - сообщение, вторая - место ошибки)
+                // Берем вторую строку
                 const locationLine = stackLines[1].trim();
                 // Упрощаем вывод для пользователя
                 errorLocation = locationLine.split('/').pop() || locationLine;
