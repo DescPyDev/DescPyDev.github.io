@@ -920,91 +920,102 @@ async function drawTables(page, pdfDoc, propertyTableArea, incomeTableArea, data
 async function draw_dawn_content_page(page, pdfDoc, data, startY, drawTableFunc, custom_font, custom_bold_font, amountFont, newTableCoordinatesProperty, newTableCoordinatesIncome, newStartY, newStartYProperty) {
     // Рисуем прямоугольник с галками.
     const monthly_income_data = {
-        rectangleArea: { x: 161, y: 408, width: 276, height: 66},
+        rectangleArea: { x: 161, y: 408, width: 276, height: 66}, // y: 492
         color: rgb(0.94, 1, 0.94),
         textColor: rgb(0, 0.58, 0.27)
     };
 
     const monthly_expenses_data = {
-        rectangleArea: { x: 63, y: 210, width: 190, height: 40},
+        rectangleArea: { x: 63, y: 210, width: 190, height: 40}, // y: 690
         color: rgb(1, 0.89, 0.87),
         textColor: rgb(0.7, 0.12, 0.12)
     };
 
     const remaining_balance_data = {
-        rectangleArea: { x: 339, y: 210, width: 190, height: 40},
+        rectangleArea: { x: 339, y: 210, width: 190, height: 40}, // y: 690,
         color: rgb(0.94, 1, 0.94),
         textColor: rgb(0, 0.58, 0.27)
     };
 
-    let currentPage = page;
-    let lastY = startY;
-
-    // Функция для проверки и создания новой страницы при необходимости
-    const checkAndCreateNewPage = (requiredHeight) => {
-        const { height: pageHeight } = currentPage.getSize();
-        const availableSpace = lastY - requiredHeight - 50; // 50px минимальный отступ снизу
-        
-        if (availableSpace <= 0) {
-            const currentPageIndex = pdfDoc.getPages().indexOf(currentPage);
-            currentPage = pdfDoc.insertPage(currentPageIndex + 1);
-            clear_page(currentPage);
-            lastY = pageHeight - 50;
-            return true;
-        }
-        return false;
-    };
-
-    // 1. Рисуем прямоугольник месячных заработков
-    const monthlyIncomeHeight = monthly_income_data.rectangleArea.height + 21; // +21 для нижних галочек
-    if (checkAndCreateNewPage(monthlyIncomeHeight)) {
-        // Если создали новую страницу, позиционируем прямоугольник вверху
-        lastY = currentPage.getSize().height - 50;
-    }
-
-    const monthlyIncomeRect = {
+    // Рисуем.
+    let newRectangleArea;
+    newRectangleArea = {
         x: monthly_income_data.rectangleArea.x,
-        y: lastY - monthly_income_data.rectangleArea.height - 35,
+        y: startY - (35 + 58),
         width: monthly_income_data.rectangleArea.width,
         height: monthly_income_data.rectangleArea.height
     };
 
+    // Рисуем прямоугольник месячных заработков.
+    // Считаем доход в месяц.
     const totalSum = data.sources_of_official_income.reduce((acc, item) => acc + item["Сумма в месяц"], 0);
-    let bottomCheckmarkY = await drawRectangleWithCheckmarks(currentPage, formatNumber(totalSum), monthlyIncomeRect, monthly_income_data.color, monthly_income_data.textColor, custom_font, custom_bold_font, amountFont, true, "+");
-    
-    // Обновляем lastY после отрисовки прямоугольника с учетом галочек
-    lastY = bottomCheckmarkY - 21;
+    let lastY;
+    lastY = await drawRectangleWithCheckmarks(page, formatNumber(totalSum), newRectangleArea, monthly_income_data.color, monthly_income_data.textColor, custom_font, custom_bold_font, amountFont, true, "+");
 
-    // 2. Рисуем таблицу расходов
-    const newHeightTableExpenses = await calculateTableHeight(data.monthly_expenses, 12, 12);
-    const expensesTableTotalHeight = newHeightTableExpenses + 32; // +32 для отступов
+    // Проверяем нижнюю границу галочки (нижняя галочка находится на 21px ниже основания прямоугольника)
+    const bottomCheckmarkY = lastY - 21; // lastY уже содержит y-координату нижней галочки
     
-    if (checkAndCreateNewPage(expensesTableTotalHeight)) {
-        // Если создали новую страницу, позиционируем таблицу вверху
-        lastY = currentPage.getSize().height - 50;
+    // Если нижняя граница галочки равна 0 или меньше, создаем новую страницу
+    let currentPage = page;
+    if (bottomCheckmarkY <= 0) {
+        // Создаем новую страницу после текущей
+        const currentPageIndex = pdfDoc.getPages().indexOf(page);
+        currentPage = pdfDoc.insertPage(currentPageIndex + 1);
+        
+        // Очищаем новую страницу
+        await clear_page(currentPage);
+        
+        // Сбрасываем lastY на верх страницы для новой страницы
+        const { height: pageHeight } = currentPage.getSize();
+        lastY = pageHeight - 50; // Отступ сверху для нового контента
     }
 
+    // Рисуем табличку расходов (на текущей или новой странице)
     const expensesTableArea = {
         x: 74,
-        y: lastY - newHeightTableExpenses - 32,
+        y: lastY - 32,
         width: 482,
-        height: newHeightTableExpenses
+        height: 52
     };
-
     data.type = "expenses";
-    const totalExpenses = data.monthly_expenses.reduce((acc, item) => acc + item["Сумма в месяц"], 0);
-    lastY = await drawTableFunc(currentPage, data.monthly_expenses, expensesTableArea.x, expensesTableArea.y, custom_font, custom_bold_font, amountFont, data, expensesTableArea, expensesTableArea);
-
-    // 3. Рисуем прямоугольник месячных трат
-    const expensesRectHeight = monthly_expenses_data.rectangleArea.height + 21 + 95; // +21 для галочек, +95 для отступа
+    const newHeightTableExpenses = await calculateTableHeight(data.monthly_expenses, 12, 12);
+    const newTableCoordinatesExpenses = { x: expensesTableArea.x, y: expensesTableArea.y, width: expensesTableArea.width, height: newHeightTableExpenses};
+    lastY = await drawTableFunc(currentPage, data.monthly_expenses, expensesTableArea.x, expensesTableArea.y, custom_font, custom_bold_font, amountFont, data, expensesTableArea, newTableCoordinatesExpenses);
     
-    if (checkAndCreateNewPage(expensesRectHeight)) {
-        // Если создали новую страницу, позиционируем прямоугольник вверху
-        lastY = currentPage.getSize().height - 50;
+    // ВТОРАЯ ПРОВЕРКА: После таблицы расходов проверяем, хватит ли места для следующих прямоугольников
+    // Рассчитываем предполагаемую позицию нижней галочки следующего прямоугольника
+    const totalExpenses = data.monthly_expenses.reduce((acc, item) => acc + item["Сумма в месяц"], 0);
+    const plannedRectangleY = lastY - 95;
+    const plannedBottomCheckmarkY = plannedRectangleY - 21; // Нижняя галочка будет на 21px ниже прямоугольника
+    
+    // Если нижняя граница галочки будет 0 или меньше, создаем новую страницу
+    if (plannedBottomCheckmarkY <= 0) {
+        // Создаем новую страницу после текущей
+        const currentPageIndex = pdfDoc.getPages().indexOf(currentPage);
+        currentPage = pdfDoc.insertPage(currentPageIndex + 1);
+        
+        // Очищаем новую страницу
+        await clear_page(currentPage);
+        
+        // Сбрасываем lastY на верх страницы для новой страницы
+        const { height: pageHeight } = currentPage.getSize();
+        lastY = pageHeight - 25;
     } else {
-        lastY = lastY - 95; // Стандартный отступ если места хватает
+        // Если места хватает, используем рассчитанную позицию
+        lastY = plannedRectangleY + monthly_expenses_data.rectangleArea.height;
     }
 
+    // Рисуем остальные 2 прямоугольника.
+    // Рисуем прямоугольник месячных трат.
+    console.log(`lastY: ${lastY}`);
+    newRectangleArea = {
+        x: monthly_expenses_data.rectangleArea.x,
+        y: lastY - 95,
+        width: monthly_expenses_data.rectangleArea.width,
+        height: monthly_expenses_data.rectangleArea.height
+    };
+
+    // Формируем массив с текстами для всех расходов.
     const expensesTexts = [
         "Регулярные ежемесячные",
         "расходы",
@@ -1012,45 +1023,57 @@ async function draw_dawn_content_page(page, pdfDoc, data, startY, drawTableFunc,
         formatNumber(totalExpenses)
     ];
 
-    const expensesRect = {
-        x: monthly_expenses_data.rectangleArea.x,
-        y: lastY - monthly_expenses_data.rectangleArea.height,
-        width: monthly_expenses_data.rectangleArea.width,
-        height: monthly_expenses_data.rectangleArea.height
-    };
+    const expensesRectY = await drawRectangleWithCheckmarks(currentPage, expensesTexts, newRectangleArea, monthly_expenses_data.color, monthly_expenses_data.textColor, custom_font, custom_bold_font, amountFont, false, "-", "expenses");
 
-    bottomCheckmarkY = await drawRectangleWithCheckmarks(currentPage, expensesTexts, expensesRect, monthly_expenses_data.color, monthly_expenses_data.textColor, custom_font, custom_bold_font, amountFont, false, "-", "expenses");
-    lastY = bottomCheckmarkY - 21;
-
-    // 4. Рисуем прямоугольник ежемесячного профицита
-    const remainingRectHeight = remaining_balance_data.rectangleArea.height + 21 + 95;
+    // ТРЕТЬЯ ПРОВЕРКА: После первого прямоугольника проверяем место для второго
+    const remaining_balance_Value = totalSum - totalExpenses;
+    const plannedRemainingRectY = expensesRectY - 95;
+    const plannedRemainingBottomCheckmarkY = plannedRemainingRectY - 21;
     
-    if (checkAndCreateNewPage(remainingRectHeight)) {
-        // Если создали новую страницу, позиционируем прямоугольник вверху
-        lastY = currentPage.getSize().height - 50;
+    if (plannedRemainingBottomCheckmarkY <= 0) {
+        // Создаем новую страницу после текущей
+        const currentPageIndex = pdfDoc.getPages().indexOf(currentPage);
+        currentPage = pdfDoc.insertPage(currentPageIndex + 1);
+        
+        // Очищаем новую страницу
+        await clear_page(currentPage);
+        
+        // Сбрасываем lastY на верх страницы для новой страницы
+        const { height: pageHeight } = currentPage.getSize();
+        lastY = pageHeight - 25;
+        
+        // Пересчитываем позицию для прямоугольника профицита на новой странице
+        newRectangleArea = {
+            x: remaining_balance_data.rectangleArea.x,
+            y: lastY - 95,
+            width: remaining_balance_data.rectangleArea.width,
+            height: remaining_balance_data.rectangleArea.height
+        };
     } else {
-        lastY = lastY - 95;
+        // Используем запланированную позицию
+        newRectangleArea = {
+            x: remaining_balance_data.rectangleArea.x,
+            y: lastY - 95,
+            width: remaining_balance_data.rectangleArea.width,
+            height: remaining_balance_data.rectangleArea.height
+        };
     }
 
-    const remaining_balance_Value = totalSum - totalExpenses;
+    // Рисуем прямоугольник ежемесячного профицита.
+    // Формируем массив с текстами для ежемесячного профицита.
     const remainingBalanceTexts = [
         "Ежемесячный профицит",
         "бюджета заемщика",
         "без учета оплат по долговым обяз-вам",
         formatNumber(remaining_balance_Value)
     ];
+    await drawRectangleWithCheckmarks(currentPage, remainingBalanceTexts, newRectangleArea, remaining_balance_data.color, remaining_balance_data.textColor, custom_font, custom_bold_font, amountFont, false, "", "remaining");
 
-    const remainingRect = {
-        x: remaining_balance_data.rectangleArea.x,
-        y: lastY - remaining_balance_data.rectangleArea.height,
-        width: remaining_balance_data.rectangleArea.width,
-        height: remaining_balance_data.rectangleArea.height
-    };
+    // Рисуем пропущенные элементы
+    await draw_missing_elements(page, pdfDoc, newTableCoordinatesProperty, newTableCoordinatesIncome, newTableCoordinatesExpenses, custom_font, custom_bold_font, newStartY, newStartYProperty, data);
 
-    await drawRectangleWithCheckmarks(currentPage, remainingBalanceTexts, remainingRect, remaining_balance_data.color, remaining_balance_data.textColor, custom_font, custom_bold_font, amountFont, false, "", "remaining");
-
-    // Рисуем пропущенные элементы на оригинальной странице
-    await draw_missing_elements(page, pdfDoc, newTableCoordinatesProperty, newTableCoordinatesIncome, expensesTableArea, custom_font, custom_bold_font, newStartY, newStartYProperty, data);
+    // Возвращаем текущую страницу для возможного использования в других функциях
+    return currentPage;
 };
 
 async function draw_missing_elements(page, pdfDoc, newTableCoordinatesProperty, newTableCoordinatesIncome, newTableCoordinatesExpenses, font, bold, newStartY, newStartYProperty, data) {
