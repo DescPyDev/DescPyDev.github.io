@@ -748,7 +748,7 @@ async function handleFormSubmit(e) {
         const pdfBytes = await main_function(serializedData);
 
         // Добавляем полученный PDF файл в сделку в битриксе.
-        //await addComment(serializedData.dealId, await pdfToBase64(pdfBytes));
+        await addComment(serializedData.dealId, await pdfToBase64(pdfBytes));
         
         // Создаем Blob из байтов PDF
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -821,3 +821,4 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', updateLiabilitiesTotals);
     });
 });
+
