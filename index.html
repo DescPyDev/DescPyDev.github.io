@@ -297,6 +297,42 @@
             display: none;
         }
 
+        .business-activity-checkbox {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .property-subsection {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f5f7fa;
+        }
+
+        .property-subtitle {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #3498db;
+        }
+
+        .checkbox-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .overdue-date-input {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .transactions-section {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
@@ -313,6 +349,11 @@
             .calculated-totals {
                 flex-direction: column;
             }
+            
+            .checkbox-row {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -324,21 +365,72 @@
         </div>
 
         <form id="loanForm" class="form-body">
-            <!-- Информация о менеджере -->
+            <!-- Финансовые обязательства -->
             <div class="form-section">
-                <h3 class="section-title">👨‍💼 Информация о менеджере</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="required">Фамилия менеджера</label>
-                        <input type="text" name="manager_last_name" placeholder="Введите фамилию менеджера" required>
+                <h3 class="section-title">📋 Финансовые обязательства</h3>
+                <div id="liabilityItems">
+                    <div class="dynamic-item">
+                        <button type="button" class="remove-btn">×</button>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Вид обязательства</label>
+                                <select name="liabilities[0][name]" onchange="toggleLiabilityOtherInput(this)">
+                                    <option value="">Выберите вид обязательства</option>
+                                    <option value="МФО">МФО</option>
+                                    <option value="Автокредит">Автокредит</option>
+                                    <option value="Ипотека">Ипотека</option>
+                                    <option value="Кредитная карта">Кредитная карта</option>
+                                    <option value="Ущерб">Ущерб</option>
+                                    <option value="other">Другое</option>
+                                </select>
+                                <input type="text" name="liabilities[0][other_name]" placeholder="Укажите вид обязательства" class="other-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Ежемесячный платеж</label>
+                                <input type="number" name="liabilities[0][monthly_payment]" placeholder="0" class="monthly-payment-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Общая сумма</label>
+                                <input type="number" name="liabilities[0][total_liability]" placeholder="0" class="total-liability-input">
+                            </div>
+                            <!-- Новые поля для финансовых обязательств -->
+                            <div class="form-group">
+                                <label>Дата приобретения кредита</label>
+                                <input type="text" name="liabilities[0][loan_date]" placeholder="ДД.ММ.ГГГГ">
+                            </div>
+                            <div class="form-group">
+                                <label>Срок кредита (лет)</label>
+                                <input type="number" name="liabilities[0][loan_term]" placeholder="0" step="0.1" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Сумма внесенных платежей</label>
+                                <input type="number" name="liabilities[0][paid_amount]" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-group">
+                                    <input type="checkbox" name="liabilities[0][has_overdues]" onchange="toggleOverdueDateInput(this)">
+                                    Имеются ли просрочки
+                                </label>
+                                <input type="text" name="liabilities[0][overdue_date]" placeholder="ДД.ММ.ГГГГ" class="overdue-date-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-group">
+                                    <input type="checkbox" name="liabilities[0][has_guarantor]">
+                                    Есть финансовый поручитель
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="required">Имя менеджера</label>
-                        <input type="text" name="manager_first_name" placeholder="Введите имя менеджера" required>
+                </div>
+                <button type="button" class="add-btn" onclick="addLiabilityItem()">Добавить обязательство</button>
+                
+                <!-- Блок с автоматически рассчитанными суммами -->
+                <div class="calculated-totals">
+                    <div class="total-item">
+                        Общая сумма обязательств: <span id="totalLiabilities" class="total-value">0</span> руб.
                     </div>
-                    <div class="form-group">
-                        <label>Отчество менеджера</label>
-                        <input type="text" name="manager_middle_name" placeholder="Введите отчество менеджера">
+                    <div class="total-item">
+                        Общий ежемесячный платеж: <span id="totalMonthlyPayment" class="total-value">0</span> руб.
                     </div>
                 </div>
             </div>
@@ -373,6 +465,16 @@
                 </div>
                 <div class="form-grid">
                     <div class="form-group">
+                        <label class="required">Дата рождения</label>
+                        <input type="text" name="birth_date" placeholder="ДД.ММ.ГГГГ" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Регион и город проживания</label>
+                        <input type="text" name="location" placeholder="Введите регион и город" required>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
                         <label class="required">Семейное положение</label>
                         <select name="marital_status" required>
                             <option value="">Выберите семейное положение</option>
@@ -398,82 +500,10 @@
                 <h3 class="section-title">👶 Дети на иждивении</h3>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>Количество детей на иждивении</label>
+                        <label>Дети до 18 лет</label>
                         <input type="number" name="dependents_children" placeholder="0" min="0" max="20">
                     </div>
                 </div>
-            </div>
-
-            <!-- Месячные расходы -->
-            <div class="form-section">
-                <h3 class="section-title">📅 Месячные расходы</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Аренда квартиры</label>
-                        <input type="number" name="house_expenses" placeholder="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Затраты на еду</label>
-                        <input type="number" name="food_expenses" placeholder="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Затраты на транспорт</label>
-                        <input type="number" name="transport_expenses" placeholder="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Затраты на медицину</label>
-                        <input type="number" name="medical_expenses" placeholder="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Затраты на мобильную связь</label>
-                        <input type="number" name="mobile_expenses" placeholder="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Содержание детей</label>
-                        <input type="number" name="children_expenses" placeholder="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Удержания от ФСП</label>
-                        <input type="number" name="fsp_expenses" placeholder="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Коммунальные платежи</label>
-                        <input type="number" name="utilities_expenses" placeholder="0">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Имущество -->
-            <div class="form-section">
-                <h3 class="section-title">🏠 Имущество заёмщика</h3>
-                <div id="ownershipItems">
-                    <div class="dynamic-item">
-                        <button type="button" class="remove-btn">×</button>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Наименование имущества</label>
-                                <input type="text" name="ownership[0][name]" placeholder="Например: Квартира">
-                            </div>
-                            <div class="form-group">
-                                <label>Стоимость</label>
-                                <input type="number" name="ownership[0][cost]" placeholder="0">
-                            </div>
-                            <div class="form-group">
-                                <label class="checkbox-group">
-                                    <input type="checkbox" name="ownership[0][is_jointly]">
-                                    Совместно нажитое
-                                </label>
-                            </div>
-                            <div class="form-group">
-                                <label class="checkbox-group">
-                                    <input type="checkbox" name="ownership[0][is_pledged]">
-                                    В залоге
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <button type="button" class="add-btn" onclick="addOwnershipItem()">Добавить имущество</button>
             </div>
 
             <!-- Источники дохода -->
@@ -500,10 +530,164 @@
                                 <label>Сумма в месяц</label>
                                 <input type="number" name="income[0][salary]" placeholder="0">
                             </div>
+                            <!-- Добавленный чекбокс "удерживается-ли" -->
+                            <div class="form-group">
+                                <label class="checkbox-group">
+                                    <input type="checkbox" name="income[0][is_withheld]">
+                                    Удерживается-ли
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <button type="button" class="add-btn" onclick="addIncomeItem()">Добавить источник дохода</button>
+            </div>
+
+            <!-- Месячные расходы -->
+            <div class="form-section">
+                <h3 class="section-title">📅 Ежемесячные расходы</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Аренда жилья</label>
+                        <input type="number" name="house_expenses" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Затраты на продукты</label>
+                        <input type="number" name="food_expenses" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Транспортные расходы</label>
+                        <input type="number" name="transport_expenses" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Затраты на медицину</label>
+                        <input type="number" name="medical_expenses" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Затраты на мобильную связь</label>
+                        <input type="number" name="mobile_expenses" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Содержание детей</label>
+                        <input type="number" name="children_expenses" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Алименты</label>
+                        <input type="number" name="alimony_expenses" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Удержания от ФССП</label>
+                        <input type="number" name="fsp_expenses" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Коммунальные платежи</label>
+                        <input type="number" name="utilities_expenses" placeholder="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Имущество -->
+            <div class="form-section">
+                <h3 class="section-title">🏠 Имущество заёмщика</h3>
+                
+                <!-- Недвижимое имущество -->
+                <div class="property-subsection">
+                    <h4 class="property-subtitle">Недвижимое имущество</h4>
+                    <div id="realEstateItems">
+                        <div class="dynamic-item">
+                            <button type="button" class="remove-btn">×</button>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Наименование имущества</label>
+                                    <select name="real_estate[0][name]" onchange="toggleRealEstateOtherInput(this)">
+                                        <option value="">Выберите вид имущества</option>
+                                        <option value="Квартира">Квартира</option>
+                                        <option value="Дом">Дом</option>
+                                        <option value="Дача">Дача</option>
+                                        <option value="Апартаменты">Апартаменты</option>
+                                        <option value="Земельный участок">Земельный участок</option>
+                                        <option value="Коммерческая недвижимость">Коммерческая недвижимость</option>
+                                        <option value="other">Другое</option>
+                                    </select>
+                                    <input type="text" name="real_estate[0][other_name]" placeholder="Укажите вид имущества" class="other-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Стоимость</label>
+                                    <input type="number" name="real_estate[0][cost]" placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Доля владения</label>
+                                    <select name="real_estate[0][ownership_share]">
+                                        <option value="">Выберите долю владения</option>
+                                        <option value="100%">100%</option>
+                                        <option value="1/2">1/2</option>
+                                        <option value="1/3">1/3</option>
+                                        <option value="1/4">1/4</option>
+                                        <option value="1/5">1/5</option>
+                                        <option value="1/6">1/6</option>
+                                        <option value="1/7">1/7</option>
+                                        <option value="1/8">1/8</option>
+                                        <option value="1/9">1/9</option>
+                                        <option value="1/10">1/10</option>
+                                    </select>
+                                </div>
+                                <!-- Чекбоксы на одном уровне -->
+                                <div class="form-group">
+                                    <div class="checkbox-row">
+                                        <label class="checkbox-group">
+                                            <input type="checkbox" name="real_estate[0][is_jointly]">
+                                            Совместно нажитое
+                                        </label>
+                                        <label class="checkbox-group">
+                                            <input type="checkbox" name="real_estate[0][is_pledged]">
+                                            В залоге
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="add-btn" onclick="addRealEstateItem()">Добавить недвижимое имущество</button>
+                </div>
+                
+                <!-- Движимое имущество -->
+                <div class="property-subsection">
+                    <h4 class="property-subtitle">Движимое имущество</h4>
+                    <div id="movableItems">
+                        <div class="dynamic-item">
+                            <button type="button" class="remove-btn">×</button>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Наименование имущества</label>
+                                    <select name="movable[0][name]" onchange="toggleMovableOtherInput(this)">
+                                        <option value="">Выберите вид имущества</option>
+                                        <option value="Машина">Машина</option>
+                                        <option value="Яхта">Яхта</option>
+                                        <option value="other">Другое</option>
+                                    </select>
+                                    <input type="text" name="movable[0][other_name]" placeholder="Укажите вид имущества" class="other-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Стоимость</label>
+                                    <input type="number" name="movable[0][cost]" placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <div class="checkbox-row">
+                                        <label class="checkbox-group">
+                                            <input type="checkbox" name="movable[0][is_jointly]">
+                                            Совместно нажитое
+                                        </label>
+                                        <label class="checkbox-group">
+                                            <input type="checkbox" name="movable[0][is_pledged]">
+                                            В залоге
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="add-btn" onclick="addMovableItem()">Добавить движимое имущество</button>
+                </div>
             </div>
 
             <!-- Дополнительная информация -->
@@ -518,7 +702,7 @@
                     </div>
                     <div class="form-group">
                         <label class="checkbox-group">
-                            <input type="checkbox" name="has_transactions">
+                            <input type="checkbox" name="has_transactions" id="hasTransactions">
                             Совершались ли сделки за последние 3 года
                         </label>
                     </div>
@@ -542,51 +726,55 @@
                                 <option value="ООО">Общество с ограниченной ответственностью (ООО)</option>
                             </select>
                         </div>
+                        <div class="business-activity-checkbox" id="businessActivityCheckbox">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="is_business_active">
+                                Ведёт ли деятельность сейчас
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Финансовые обязательства -->
-            <div class="form-section">
-                <h3 class="section-title">📋 Финансовые обязательства</h3>
-                <div id="liabilityItems">
+            <!-- НОВЫЙ РАЗДЕЛ: Сделки заёмщика -->
+            <div id="transactionsSection" class="form-section transactions-section">
+                <h3 class="section-title">📊 Сделки заёмщика</h3>
+                <div id="transactionItems">
                     <div class="dynamic-item">
                         <button type="button" class="remove-btn">×</button>
                         <div class="form-grid">
                             <div class="form-group">
-                                <label>Вид обязательства</label>
-                                <select name="liabilities[0][name]" onchange="toggleLiabilityOtherInput(this)">
-                                    <option value="">Выберите вид обязательства</option>
-                                    <option value="МФО">МФО</option>
-                                    <option value="Автокредит">Автокредит</option>
-                                    <option value="Ипотека">Ипотека</option>
-                                    <option value="Кредитная карта">Кредитная карта</option>
+                                <label>Вид сделки</label>
+                                <select name="transactions[0][type]" onchange="toggleTransactionTypeOtherInput(this)">
+                                    <option value="">Выберите вид сделки</option>
+                                    <option value="Продажа">Продажа</option>
+                                    <option value="Дарение">Дарение</option>
                                     <option value="other">Другое</option>
                                 </select>
-                                <input type="text" name="liabilities[0][other_name]" placeholder="Укажите вид обязательства" class="other-input">
+                                <input type="text" name="transactions[0][other_type]" placeholder="Укажите вид сделки" class="other-input">
                             </div>
                             <div class="form-group">
-                                <label>Ежемесячный платеж</label>
-                                <input type="number" name="liabilities[0][monthly_payment]" placeholder="0" class="monthly-payment-input">
+                                <label>Что продал</label>
+                                <select name="transactions[0][item]" onchange="toggleTransactionItemOtherInput(this)">
+                                    <option value="">Выберите объект сделки</option>
+                                    <option value="Квартира">Квартира</option>
+                                    <option value="Машина">Машина</option>
+                                    <option value="other">Другое</option>
+                                </select>
+                                <input type="text" name="transactions[0][other_item]" placeholder="Укажите объект сделки" class="other-input">
                             </div>
                             <div class="form-group">
-                                <label>Общая сумма</label>
-                                <input type="number" name="liabilities[0][total_liability]" placeholder="0" class="total-liability-input">
+                                <label>За сколько продал</label>
+                                <input type="number" name="transactions[0][amount]" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Дата сделки</label>
+                                <input type="text" name="transactions[0][date]" placeholder="ДД.ММ.ГГГГ">
                             </div>
                         </div>
                     </div>
                 </div>
-                <button type="button" class="add-btn" onclick="addLiabilityItem()">Добавить обязательство</button>
-                
-                <!-- Блок с автоматически рассчитанными суммами -->
-                <div class="calculated-totals">
-                    <div class="total-item">
-                        Общая сумма обязательств: <span id="totalLiabilities" class="total-value">0</span> руб.
-                    </div>
-                    <div class="total-item">
-                        Общий ежемесячный платеж: <span id="totalMonthlyPayment" class="total-value">0</span> руб.
-                    </div>
-                </div>
+                <button type="button" class="add-btn" onclick="addTransactionItem()">Добавить сделку</button>
             </div>
 
             <button type="submit" class="submit-btn">Отправить заявку</button>
@@ -624,13 +812,50 @@
         // Функция для показа/скрытия поля выбора типа организации
         document.getElementById('isBusinessOwner').addEventListener('change', function() {
             const businessTypeSelect = document.getElementById('businessTypeSelect');
+            const businessActivityCheckbox = document.getElementById('businessActivityCheckbox');
+            
             if (this.checked) {
                 businessTypeSelect.style.display = 'block';
+                businessActivityCheckbox.style.display = 'block';
             } else {
                 businessTypeSelect.style.display = 'none';
-                // Сбрасываем значение при скрытии
+                businessActivityCheckbox.style.display = 'none';
+                // Сбрасываем значения при скрытии
                 document.querySelector('select[name="business_type"]').value = '';
+                document.querySelector('input[name="is_business_active"]').checked = false;
             }
+        });
+
+        // Функция для показа/скрытия раздела сделок
+        document.getElementById('hasTransactions').addEventListener('change', function() {
+            const transactionsSection = document.getElementById('transactionsSection');
+            
+            if (this.checked) {
+                transactionsSection.style.display = 'block';
+            } else {
+                transactionsSection.style.display = 'none';
+                // Очищаем все добавленные сделки при скрытии раздела
+                const transactionItems = document.getElementById('transactionItems');
+                while (transactionItems.children.length > 1) {
+                    transactionItems.removeChild(transactionItems.lastChild);
+                }
+            }
+        });
+
+        // Функция для обновления обработчиков кнопок удаления
+        function updateRemoveButtons() {
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.onclick = function() {
+                    this.parentElement.remove();
+                    updateRemoveButtons();
+                    updateLiabilitiesTotals();
+                };
+            });
+        }
+
+        // Инициализация обработчиков при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRemoveButtons();
         });
     </script>
 </body>
