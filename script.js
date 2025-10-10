@@ -1,8 +1,9 @@
 // script.js
 
-let ownershipCount = 1;
 let incomeCount = 1;
-let liabilityCount = 0;
+let realEstateCounter = 1;
+let movableCounter = 1;
+let liabilityCount = 1;
 
 // Вспомогательные функции.
 async function pdfToBase64(pdfBytes) {
@@ -18,8 +19,63 @@ async function pdfToBase64(pdfBytes) {
     });
 };
 
+// Функция для показа/скрытия поля "другое" для вида сделки
+function toggleTransactionTypeOtherInput(select) {
+    const otherInput = select.parentNode.querySelector('input[name$="[other_type]"]');
+    if (select.value === 'other') {
+        otherInput.style.display = 'block';
+    } else {
+        otherInput.style.display = 'none';
+        otherInput.value = '';
+    }
+};
+
+// Функция для показа/скрытия поля "другое" для объекта сделки
+function toggleTransactionItemOtherInput(select) {
+    const otherInput = select.parentNode.querySelector('input[name$="[other_item]"]');
+    if (select.value === 'other') {
+        otherInput.style.display = 'block';
+    } else {
+        otherInput.style.display = 'none';
+        otherInput.value = '';
+    }
+};
+
 // Функция для переключения поля "Другое" в источниках дохода
 function toggleIncomeOtherInput(selectElement) {
+    const otherInput = selectElement.parentElement.querySelector('.other-input');
+    if (selectElement.value === 'other') {
+        otherInput.style.display = 'block';
+    } else {
+        otherInput.style.display = 'none';
+        otherInput.value = '';
+    }
+};
+
+// Функция для показа/скрытия поля даты просрочки
+function toggleOverdueDateInput(checkbox) {
+    const dynamicItem = checkbox.closest('.dynamic-item');
+    const overdueDateInput = dynamicItem.querySelector('input[name$="[overdue_date]"]');
+    
+    if (checkbox.checked) {
+        overdueDateInput.style.display = 'block';
+    } else {
+        overdueDateInput.style.display = 'none';
+        overdueDateInput.value = '';
+    }
+};
+
+function toggleRealEstateOtherInput(selectElement) {
+    const otherInput = selectElement.parentElement.querySelector('.other-input');
+    if (selectElement.value === 'other') {
+        otherInput.style.display = 'block';
+    } else {
+        otherInput.style.display = 'none';
+        otherInput.value = '';
+    }
+};
+
+function toggleMovableOtherInput(selectElement) {
     const otherInput = selectElement.parentElement.querySelector('.other-input');
     if (selectElement.value === 'other') {
         otherInput.style.display = 'block';
@@ -40,40 +96,51 @@ function toggleLiabilityOtherInput(selectElement) {
     }
 };
 
-function addOwnershipItem() {
-    const ownershipItems = document.getElementById('ownershipItems');
+// Функция для добавления новой сделки
+function addTransactionItem() {
+    const transactionItems = document.getElementById('transactionItems');
+    const index = transactionItems.children.length;
+    
     const newItem = document.createElement('div');
     newItem.className = 'dynamic-item';
     newItem.innerHTML = `
-        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">×</button>
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove(); updateRemoveButtons();">×</button>
         <div class="form-grid">
             <div class="form-group">
-                <label>Наименование имущества</label>
-                <input type="text" name="ownership[${ownershipCount}][name]" placeholder="Например: Квартира">
+                <label>Вид сделки</label>
+                <select name="transactions[${index}][type]" onchange="toggleTransactionTypeOtherInput(this)">
+                    <option value="">Выберите вид сделки</option>
+                    <option value="Продажа">Продажа</option>
+                    <option value="Дарение">Дарение</option>
+                    <option value="other">Другое</option>
+                </select>
+                <input type="text" name="transactions[${index}][other_type]" placeholder="Укажите вид сделки" class="other-input" style="display: none;">
             </div>
             <div class="form-group">
-                <label>Стоимость</label>
-                <input type="number" name="ownership[${ownershipCount}][cost]" placeholder="0">
+                <label>Что продал</label>
+                <select name="transactions[${index}][item]" onchange="toggleTransactionItemOtherInput(this)">
+                    <option value="">Выберите объект сделки</option>
+                    <option value="Квартира">Квартира</option>
+                    <option value="Машина">Машина</option>
+                    <option value="other">Другое</option>
+                </select>
+                <input type="text" name="transactions[${index}][other_item]" placeholder="Укажите объект сделки" class="other-input" style="display: none;">
             </div>
             <div class="form-group">
-                <label class="checkbox-group">
-                    <input type="checkbox" name="ownership[${ownershipCount}][is_jointly]">
-                    Совместно нажитое
-                </label>
+                <label>За сколько продал</label>
+                <input type="number" name="transactions[${index}][amount]" placeholder="0">
             </div>
             <div class="form-group">
-                <label class="checkbox-group">
-                    <input type="checkbox" name="ownership[${ownershipCount}][is_pledged]">
-                    В залоге
-                </label>
+                <label>Дата сделки</label>
+                <input type="text" name="transactions[${index}][date]" placeholder="ДД.ММ.ГГГГ">
             </div>
         </div>
     `;
-    ownershipItems.appendChild(newItem);
-    ownershipCount++;
+    
+    transactionItems.appendChild(newItem);
+    updateRemoveButtons();
 };
 
-// Функция для добавления нового источника дохода
 function addIncomeItem() {
     const incomeItems = document.getElementById('incomeItems');
     const newItem = document.createElement('div');
@@ -98,10 +165,121 @@ function addIncomeItem() {
                 <label>Сумма в месяц</label>
                 <input type="number" name="income[${incomeCount}][salary]" placeholder="0">
             </div>
+            <!-- Добавленный чекбокс "удерживается-ли" -->
+            <div class="form-group">
+                <label class="checkbox-group">
+                    <input type="checkbox" name="income[${incomeCount}][is_withheld]">
+                    Удерживается-ли
+                </label>
+            </div>
         </div>
     `;
     incomeItems.appendChild(newItem);
     incomeCount++;
+    
+    // Инициализируем обработчики для нового элемента
+    const newSelect = newItem.querySelector('select[name^="income"]');
+    toggleIncomeOtherInput(newSelect);
+};
+
+function addRealEstateItem() {
+    const container = document.getElementById('realEstateItems');
+    const newItem = document.createElement('div');
+    newItem.className = 'dynamic-item';
+    newItem.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">×</button>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Наименование имущества</label>
+                <select name="real_estate[${realEstateCounter}][name]" onchange="toggleRealEstateOtherInput(this)">
+                    <option value="">Выберите вид имущества</option>
+                    <option value="Квартира">Квартира</option>
+                    <option value="Дом">Дом</option>
+                    <option value="Дача">Дача</option>
+                    <option value="Апартаменты">Апартаменты</option>
+                    <option value="Земельный участок">Земельный участок</option>
+                    <option value="Коммерческая недвижимость">Коммерческая недвижимость</option>
+                    <option value="other">Другое</option>
+                </select>
+                <input type="text" name="real_estate[${realEstateCounter}][other_name]" placeholder="Укажите вид имущества" class="other-input">
+            </div>
+            <div class="form-group">
+                <label>Стоимость</label>
+                <input type="number" name="real_estate[${realEstateCounter}][cost]" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label>Доля владения</label>
+                <select name="real_estate[${realEstateCounter}][ownership_share]">
+                    <option value="">Выберите долю владения</option>
+                    <option value="100%">100%</option>
+                    <option value="1/2">1/2</option>
+                    <option value="1/3">1/3</option>
+                    <option value="1/4">1/4</option>
+                    <option value="1/5">1/5</option>
+                    <option value="1/6">1/6</option>
+                    <option value="1/7">1/7</option>
+                    <option value="1/8">1/8</option>
+                    <option value="1/9">1/9</option>
+                    <option value="1/10">1/10</option>
+                </select>
+            </div>
+            <!-- Чекбоксы на одном уровне -->
+            <div class="form-group">
+                <div class="checkbox-row">
+                    <label class="checkbox-group">
+                        <input type="checkbox" name="real_estate[${realEstateCounter}][is_jointly]">
+                        Совместно нажитое
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" name="real_estate[${realEstateCounter}][is_pledged]">
+                        В залоге
+                    </label>
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(newItem);
+    realEstateCounter++;
+};
+
+// Функция для добавления нового источника дохода
+function addMovableItem() {
+    const container = document.getElementById('movableItems');
+    const newItem = document.createElement('div');
+    newItem.className = 'dynamic-item';
+    newItem.innerHTML = `
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">×</button>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Наименование имущества</label>
+                <select name="movable[${movableCounter}][name]" onchange="toggleMovableOtherInput(this)">
+                    <option value="">Выберите вид имущества</option>
+                    <option value="Машина">Машина</option>
+                    <option value="Яхта">Яхта</option>
+                    <option value="other">Другое</option>
+                </select>
+                <input type="text" name="movable[${movableCounter}][other_name]" placeholder="Укажите вид имущества" class="other-input">
+            </div>
+            <div class="form-group">
+                <label>Стоимость</label>
+                <input type="number" name="movable[${movableCounter}][cost]" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label class="checkbox-group">
+                    <input type="checkbox" name="movable[${movableCounter}][is_jointly]">
+                    Совместно нажитое
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-group">
+                    <input type="checkbox" name="movable[${movableCounter}][is_pledged]">
+                    В залоге
+                </label>
+            </div>
+        </div>
+    `;
+    container.appendChild(newItem);
+    movableCounter++;
 };
 
 function addLiabilityItem() {
@@ -109,7 +287,7 @@ function addLiabilityItem() {
     const newItem = document.createElement('div');
     newItem.className = 'dynamic-item';
     newItem.innerHTML = `
-        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">×</button>
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove(); updateLiabilitiesTotals();">×</button>
         <div class="form-grid">
             <div class="form-group">
                 <label>Вид обязательства</label>
@@ -119,61 +297,96 @@ function addLiabilityItem() {
                     <option value="Автокредит">Автокредит</option>
                     <option value="Ипотека">Ипотека</option>
                     <option value="Кредитная карта">Кредитная карта</option>
+                    <option value="Ущерб">Ущерб</option>
                     <option value="other">Другое</option>
                 </select>
                 <input type="text" name="liabilities[${liabilityCount}][other_name]" placeholder="Укажите вид обязательства" class="other-input">
             </div>
             <div class="form-group">
                 <label>Ежемесячный платеж</label>
-                <input type="number" name="liabilities[${liabilityCount}][monthly_payment]" placeholder="0" class="monthly-payment-input">
+                <input type="number" name="liabilities[${liabilityCount}][monthly_payment]" placeholder="0" class="monthly-payment-input" oninput="updateLiabilitiesTotals()">
             </div>
             <div class="form-group">
                 <label>Общая сумма</label>
-                <input type="number" name="liabilities[${liabilityCount}][total_liability]" placeholder="0" class="total-liability-input">
+                <input type="number" name="liabilities[${liabilityCount}][total_liability]" placeholder="0" class="total-liability-input" oninput="updateLiabilitiesTotals()">
+            </div>
+            <!-- Новые поля для финансовых обязательств -->
+            <div class="form-group">
+                <label>Дата приобретения кредита</label>
+                <input type="text" name="liabilities[${liabilityCount}][loan_date]" placeholder="ДД.ММ.ГГГГ">
+            </div>
+            <div class="form-group">
+                <label>Срок кредита (лет)</label>
+                <input type="number" name="liabilities[${liabilityCount}][loan_term]" placeholder="0" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+                <label>Сумма внесенных платежей</label>
+                <input type="number" name="liabilities[${liabilityCount}][paid_amount]" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label class="checkbox-group">
+                    <input type="checkbox" name="liabilities[${liabilityCount}][has_overdues]" onchange="toggleOverdueDateInput(this)">
+                    Имеются ли просрочки
+                </label>
+                <input type="text" name="liabilities[${liabilityCount}][overdue_date]" placeholder="ДД.ММ.ГГГГ" class="overdue-date-input">
+            </div>
+            <div class="form-group">
+                <label class="checkbox-group">
+                    <input type="checkbox" name="liabilities[${liabilityCount}][has_guarantor]">
+                    Есть финансовый поручитель
+                </label>
             </div>
         </div>
     `;
     liabilityItems.appendChild(newItem);
     liabilityCount++;
     
-    // Инициализируем новое поле
+    // Инициализируем обработчики для нового элемента
     const newSelect = newItem.querySelector('select[name^="liabilities"]');
     toggleLiabilityOtherInput(newSelect);
+    
+    // Инициализируем обработчик для чекбокса просрочек
+    const hasOverduesCheckbox = newItem.querySelector('input[name$="[has_overdues]"]');
+    toggleOverdueDateInput(hasOverduesCheckbox);
 };
 
-function calculateTotals() {
-    let totalLiabilities = 0;
-    let totalMonthlyPayment = 0;
-    
+// Функция для пересчета общих сумм обязательств
+function updateLiabilitiesTotals() {
     const monthlyPaymentInputs = document.querySelectorAll('.monthly-payment-input');
     const totalLiabilityInputs = document.querySelectorAll('.total-liability-input');
     
+    let totalMonthlyPayment = 0;
+    let totalLiabilities = 0;
+    
+    // Суммируем все ежемесячные платежи
     monthlyPaymentInputs.forEach(input => {
         const value = parseFloat(input.value) || 0;
         totalMonthlyPayment += value;
     });
     
+    // Суммируем все общие суммы обязательств
     totalLiabilityInputs.forEach(input => {
         const value = parseFloat(input.value) || 0;
         totalLiabilities += value;
     });
     
-    document.getElementById('totalLiabilities').textContent = totalLiabilities.toLocaleString('ru-RU');
+    // Обновляем отображение сумм
     document.getElementById('totalMonthlyPayment').textContent = totalMonthlyPayment.toLocaleString('ru-RU');
-}
+    document.getElementById('totalLiabilities').textContent = totalLiabilities.toLocaleString('ru-RU');
+};
 
 function showDebugInfo(info) {
     const debugDiv = document.getElementById('debugInfo');
     debugDiv.innerHTML = `<strong>Отладочная информация:</strong><br>${info}`;
     debugDiv.style.display = 'block';
-}
+};
 
 function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
     document.getElementById('errorText').textContent = message;
     errorDiv.style.display = 'block';
     setTimeout(() => errorDiv.style.display = 'none', 5000);
-}
+};
 
 function serializeFormData(formData) {
     // Получаем значения из формы
@@ -181,11 +394,8 @@ function serializeFormData(formData) {
     const lastName = formData.get('last_name') || '';
     const firstName = formData.get('first_name') || '';
     const middleName = formData.get('middle_name') || '';
-    
-    // Получаем данные менеджера
-    const managerLastName = formData.get('manager_last_name') || '';
-    const managerFirstName = formData.get('manager_first_name') || '';
-    const managerMiddleName = formData.get('manager_middle_name') || '';
+    const birthDate = formData.get('birth_date') || '';
+    const location = formData.get('location') || '';
     
     // Преобразуем значения семейного положения
     const maritalStatusValue = formData.get('marital_status') || '';
@@ -211,6 +421,7 @@ function serializeFormData(formData) {
     // Обрабатываем новый чекбокс и выбор типа организации
     const isBusinessOwner = formData.get('is_business_owner') === 'on';
     const businessTypeValue = formData.get('business_type') || '';
+    const isBusinessActive = formData.get('is_business_active') === 'on';
     let businessType = "Нет";
     
     if (isBusinessOwner && businessTypeValue) {
@@ -222,62 +433,138 @@ function serializeFormData(formData) {
         }
     }
     
-    // Собираем данные по категориям
-    const ownershipData = {};
-    const incomeData = {};
-    const liabilitiesData = {};
+    // ИСПРАВЛЕНИЕ: Правильно собираем данные для всех типов динамических элементов
+    const realEstateData = [];
+    const movableData = [];
+    const incomeData = [];
+    const liabilitiesData = [];
+    const transactionsData = [];
 
+    // Собираем все ключи формы и группируем их по типам и индексам
+    const formDataMap = {};
+    
     formData.forEach((value, key) => {
+        // Обрабатываем поля с индексами вида liabilities[0][name], liabilities[1][name] и т.д.
         const match = key.match(/(\w+)\[(\d+)\]\[(\w+)\]/);
         if (match) {
             const [, type, index, field] = match;
             
-            let targetObject;
-            if (type === 'ownership') targetObject = ownershipData;
-            else if (type === 'income') targetObject = incomeData;
-            else if (type === 'liabilities') targetObject = liabilitiesData;
-            else return;
-            
-            if (!targetObject[index]) {
-                targetObject[index] = {};
+            if (!formDataMap[type]) {
+                formDataMap[type] = {};
+            }
+            if (!formDataMap[type][index]) {
+                formDataMap[type][index] = {};
             }
             
-            if (field === 'is_jointly' || field === 'is_pledged') {
-                targetObject[index][field] = value === 'on';
+            // Обрабатываем разные типы полей
+            if (field === 'is_jointly' || field === 'is_pledged' || field === 'has_guarantor' || 
+                field === 'has_overdues' || field === 'is_withheld') {
+                formDataMap[type][index][field] = value === 'on';
             } else if (field === 'salary' || field === 'cost' || 
-                       field === 'monthly_payment' || field === 'total_liability') {
-                targetObject[index][field] = parseInt(value) || 0;
+                       field === 'monthly_payment' || field === 'total_liability' ||
+                       field === 'paid_amount' || field === 'loan_term' ||
+                       field === 'amount') {
+                formDataMap[type][index][field] = parseFloat(value) || 0;
             } else {
-                targetObject[index][field] = value;
+                formDataMap[type][index][field] = value;
             }
         }
     });
 
-    // Обрабатываем имущество
-    const property = Object.values(ownershipData)
-        .filter(item => item.name && item.name.trim() !== '')
-        .map(item => ({
-            'Наименование': item.name || '',
+    // ИСПРАВЛЕНИЕ: Обрабатываем каждый тип данных отдельно, включая первый элемент
+    if (formDataMap.liabilities) {
+        Object.keys(formDataMap.liabilities).forEach(index => {
+            const item = formDataMap.liabilities[index];
+            if (item.name && item.name.trim() !== '') {
+                liabilitiesData.push(item);
+            }
+        });
+    }
+
+    if (formDataMap.real_estate) {
+        Object.keys(formDataMap.real_estate).forEach(index => {
+            const item = formDataMap.real_estate[index];
+            if (item.name && item.name.trim() !== '') {
+                realEstateData.push(item);
+            }
+        });
+    }
+
+    if (formDataMap.movable) {
+        Object.keys(formDataMap.movable).forEach(index => {
+            const item = formDataMap.movable[index];
+            if (item.name && item.name.trim() !== '') {
+                movableData.push(item);
+            }
+        });
+    }
+
+    if (formDataMap.income) {
+        Object.keys(formDataMap.income).forEach(index => {
+            const item = formDataMap.income[index];
+            if (item.name && item.name.trim() !== '') {
+                incomeData.push(item);
+            }
+        });
+    }
+
+    if (formDataMap.transactions) {
+        Object.keys(formDataMap.transactions).forEach(index => {
+            const item = formDataMap.transactions[index];
+            if (item.type && item.type.trim() !== '') {
+                transactionsData.push(item);
+            }
+        });
+    }
+
+    const realEstateProperty = realEstateData.map(item => {
+        // Если выбрано "Другое", используем значение из поля other_name
+        let propertyName = item.name;
+        if (item.name === 'other' && item.other_name) {
+            propertyName = item.other_name;
+        }
+        
+        return {
+            'Наименование': propertyName || '',
+            'Доля': item.ownership_share || '',
             'Залог': item.is_pledged ? "Да" : "Нет",
             'Совм': item.is_jointly ? "Да" : "Нет",
             'Стоимость': item.cost || 0
-        }));
+        };
+    });
 
-    // Обрабатываем источники дохода - заменяем "other" на значение из поля ввода
-    const sources_of_official_income = Object.values(incomeData)
-        .filter(item => item.name && item.name.trim() !== '')
-        .map(item => {
-            // Если выбрано "Другое", используем значение из поля other_name
-            let incomeName = item.name;
-            if (item.name === 'other' && item.other_name) {
-                incomeName = item.other_name;
-            }
-            
-            return {
-                'Источник получения дохода': incomeName || '',
-                'Сумма в месяц': item.salary || 0
-            };
-        });
+    const movableProperty = movableData.map(item => {
+        // Если выбрано "Другое", используем значение из поля other_name
+        let propertyName = item.name;
+        if (item.name === 'other' && item.other_name) {
+            propertyName = item.other_name;
+        }
+        
+        return {
+            'Наименование': propertyName || '',
+            'Доля': "", // Для движимости всегда пустая строка
+            'Залог': item.is_pledged ? "Да" : "Нет",
+            'Совм': item.is_jointly ? "Да" : "Нет",
+            'Стоимость': item.cost || 0
+        };
+    });
+
+    // Объединяем недвижимое и движимое имущество
+    const property = [...realEstateProperty, ...movableProperty];
+
+    const sources_of_official_income = incomeData.map(item => {
+        // Если выбрано "Другое", используем значение из поля other_name
+        let incomeName = item.name;
+        if (item.name === 'other' && item.other_name) {
+            incomeName = item.other_name;
+        }
+        
+        return {
+            'Источник получения дохода': incomeName || '',
+            'Сумма в месяц': item.salary || 0,
+            'Удерживается': item.is_withheld ? "Да" : "Нет"
+        };
+    });
 
     // Получаем все ежемесячные расходы
     const houseExpenses = parseInt(formData.get('house_expenses')) || 0;
@@ -286,6 +573,7 @@ function serializeFormData(formData) {
     const medicalExpenses = parseInt(formData.get('medical_expenses')) || 0;
     const mobileExpenses = parseInt(formData.get('mobile_expenses')) || 0;
     const childrenExpenses = parseInt(formData.get('children_expenses')) || 0;
+    const alimonyExpenses = parseInt(formData.get('alimony_expenses')) || 0;
     const fspExpenses = parseInt(formData.get('fsp_expenses')) || 0;
     const utilitiesExpenses = parseInt(formData.get('utilities_expenses')) || 0;
     
@@ -328,6 +616,12 @@ function serializeFormData(formData) {
             'Сумма в месяц': childrenExpenses
         });
     }
+    if (alimonyExpenses > 0) {
+        monthly_expenses.push({
+            'Вид расходов': 'Алименты',
+            'Сумма в месяц': alimonyExpenses
+        });
+    }
     if (fspExpenses > 0) {
         monthly_expenses.push({
             'Вид расходов': 'Удержания от ФСП',
@@ -341,26 +635,62 @@ function serializeFormData(formData) {
         });
     }
 
-    // Обрабатываем финансовые обязательства - заменяем "other" на значение из поля ввода
-    const liabilities = Object.values(liabilitiesData)
-        .filter(item => item.name && item.name.trim() !== '')
-        .map(item => {
-            // Если выбрано "Другое", используем значение из поля other_name
-            let liabilityName = item.name;
-            if (item.name === 'other' && item.other_name) {
-                liabilityName = item.other_name;
+    const liabilities = liabilitiesData.map(item => {
+        // Если выбрано "Другое", используем значение из поля other_name
+        let liabilityName = item.name;
+        if (item.name === 'other' && item.other_name) {
+            liabilityName = item.other_name;
+        }
+        
+        // Обрабатываем просрочки
+        let overdueStatus = "Нет";
+        if (item.has_overdues && item.overdue_date) {
+            overdueStatus = item.overdue_date;
+        }
+        
+        return {
+            'Вид обяз-ва': liabilityName || '',
+            'Ежемес. платеж': item.monthly_payment || 0,
+            'Общая сумма': item.total_liability || 0,
+            'Дата получения': item.loan_date || '',
+            'Срок кредита': item.loan_term || 0,
+            'Сумма внесённых платежей': item.paid_amount || 0,
+            'Фин. поручитель': item.has_guarantor ? "Да" : "Нет",
+            'Просрочки': overdueStatus
+        };
+    });
+
+    // Обрабатываем сделки заёмщика
+    const hasTransactionsCheckbox = formData.get('has_transactions') === 'on';
+    const borrower_deals = [];
+    
+    if (hasTransactionsCheckbox) {
+        // Если чекбокс активен, собираем данные о сделках
+        transactionsData.forEach(item => {
+            // Обрабатываем вид сделки
+            let dealType = item.type;
+            if (item.type === 'other' && item.other_type) {
+                dealType = item.other_type;
             }
             
-            return {
-                'Вид обязательства': liabilityName || '',
-                'Ежемесячный платеж': item.monthly_payment || 0,
-                'Общая сумма обязательства': item.total_liability || 0
-            };
+            // Обрабатываем объект сделки
+            let dealItem = item.item;
+            if (item.item === 'other' && item.other_item) {
+                dealItem = item.other_item;
+            }
+            
+            borrower_deals.push({
+                'Вид сделки': dealType || '',
+                'Что продал': dealItem || '',
+                'За сколько продал': item.amount || 0,
+                'Дата': item.date || ''
+            });
         });
+    }
 
     // Получаем дополнительные флаги и преобразуем их в "Да"/"Нет"
     const isCoBorrower = formData.get('is_co_borrower') === 'on' ? "Да" : "Нет";
-    const hasTransactions = formData.get('has_transactions') === 'on' ? "Да" : "Нет";
+    const hasTransactions = hasTransactionsCheckbox ? "Да" : "Нет";
     const hasOverdues = formData.get('has_overdues') === 'on' ? "Да" : "Нет";
 
     const payload = {
@@ -369,12 +699,9 @@ function serializeFormData(formData) {
         fullname: {
             name: firstName,
             secondname: lastName,
-            surname: middleName
-        },
-        manager_fullname: {
-            name: managerFirstName,
-            secondname: managerLastName,
-            surname: managerMiddleName
+            surname: middleName,
+            birthday: birthDate,
+            city: location
         },
         marital_status: maritalStatus,
         gender: gender,
@@ -386,7 +713,9 @@ function serializeFormData(formData) {
         isCoBorrower: isCoBorrower,
         hasTransactions: hasTransactions,
         hasOverdues: hasOverdues,
-        business_type: businessType
+        business_type: businessType,
+        is_active: isBusinessActive ? "Да" : "Нет",
+        borrower_deals: borrower_deals
     };
 
     return payload;
@@ -407,12 +736,19 @@ async function handleFormSubmit(e) {
         // Сериализуем данные формы
         const formData = new FormData(this);
         const serializedData = serializeFormData(formData);
+
+        // Получаем ФИО менеджера из сделки.
+        const managerId = await getManagerId(serializedData.dealId);
+        console.log("MANAGER_ID: ", managerId);
+        const managerFullname = await getUserWithId(managerId);
+        console.log("MANAGER_FULLANME: ", managerFullname);
+        serializedData.managerFullname = managerFullname;
         
         // Вызываем функцию из pdfEdit.js для создания PDF
         const pdfBytes = await main_function(serializedData);
 
         // Добавляем полученный PDF файл в сделку в битриксе.
-        await addComment(serializedData.dealId, await pdfToBase64(pdfBytes));
+        //await addComment(serializedData.dealId, await pdfToBase64(pdfBytes));
         
         // Создаем Blob из байтов PDF
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -478,10 +814,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     existingMonthlyInputs.forEach(input => {
-        input.addEventListener('input', calculateTotals);
+        input.addEventListener('input', updateLiabilitiesTotals);
     });
     
     existingTotalInputs.forEach(input => {
-        input.addEventListener('input', calculateTotals);
+        input.addEventListener('input', updateLiabilitiesTotals);
     });
 });
