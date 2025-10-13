@@ -254,8 +254,15 @@ function addMovableItem() {
                 <label>Наименование имущества</label>
                 <select name="movable[${movableCounter}][name]" onchange="toggleMovableOtherInput(this)">
                     <option value="">Выберите вид имущества</option>
-                    <option value="Машина">Машина</option>
-                    <option value="Яхта">Яхта</option>
+                    <option value="Автомобиль">Автомобиль</option>
+                    <option value="Автобус">Автобус</option>
+                    <option value="Мотоцикл">Мотоцикл</option>
+                    <option value="Прицеп">Прицеп</option>
+                    <option value="Снегоход">Снегоход</option>
+                    <option value="Спецтехника">Спецтехника</option>
+                    <option value="Трактор">Трактор</option>
+                    <option value="Катер (лодка)">Катер (лодка)</option>
+                    <option value="Вагончик">Вагончик</option>
                     <option value="other">Другое</option>
                 </select>
                 <input type="text" name="movable[${movableCounter}][other_name]" placeholder="Укажите вид имущества" class="other-input">
@@ -284,14 +291,16 @@ function addMovableItem() {
 
 function addLiabilityItem() {
     const liabilityItems = document.getElementById('liabilityItems');
+    const index = liabilityItems.children.length;
+    
     const newItem = document.createElement('div');
     newItem.className = 'dynamic-item';
     newItem.innerHTML = `
-        <button type="button" class="remove-btn" onclick="this.parentElement.remove(); updateLiabilitiesTotals();">×</button>
+        <button type="button" class="remove-btn">×</button>
         <div class="form-grid">
             <div class="form-group">
                 <label>Вид обязательства</label>
-                <select name="liabilities[${liabilityCount}][name]" onchange="toggleLiabilityOtherInput(this)">
+                <select name="liabilities[${index}][name]" onchange="toggleLiabilityOtherInput(this)">
                     <option value="">Выберите вид обязательства</option>
                     <option value="МФО">МФО</option>
                     <option value="Автокредит">Автокредит</option>
@@ -300,54 +309,61 @@ function addLiabilityItem() {
                     <option value="Ущерб">Ущерб</option>
                     <option value="other">Другое</option>
                 </select>
-                <input type="text" name="liabilities[${liabilityCount}][other_name]" placeholder="Укажите вид обязательства" class="other-input">
+                <input type="text" name="liabilities[${index}][other_name]" placeholder="Укажите вид обязательства" class="other-input">
+            </div>
+            <!-- НОВОЕ ПОЛЕ: Банк выдавший кредит -->
+            <div class="form-group">
+                <label>Банк выдавший кредит</label>
+                <input type="text" name="liabilities[${index}][bank_name]" placeholder="Введите название банка">
             </div>
             <div class="form-group">
                 <label>Ежемесячный платеж</label>
-                <input type="number" name="liabilities[${liabilityCount}][monthly_payment]" placeholder="0" class="monthly-payment-input" oninput="updateLiabilitiesTotals()">
+                <input type="number" name="liabilities[${index}][monthly_payment]" placeholder="0" class="monthly-payment-input">
             </div>
             <div class="form-group">
                 <label>Общая сумма</label>
-                <input type="number" name="liabilities[${liabilityCount}][total_liability]" placeholder="0" class="total-liability-input" oninput="updateLiabilitiesTotals()">
+                <input type="number" name="liabilities[${index}][total_liability]" placeholder="0" class="total-liability-input">
             </div>
-            <!-- Новые поля для финансовых обязательств -->
             <div class="form-group">
                 <label>Дата приобретения кредита</label>
-                <input type="text" name="liabilities[${liabilityCount}][loan_date]" placeholder="ДД.ММ.ГГГГ">
+                <input type="text" name="liabilities[${index}][loan_date]" placeholder="ДД.ММ.ГГГГ">
             </div>
             <div class="form-group">
                 <label>Срок кредита (лет)</label>
-                <input type="number" name="liabilities[${liabilityCount}][loan_term]" placeholder="0" step="0.1" min="0">
+                <input type="number" name="liabilities[${index}][loan_term]" placeholder="0" step="0.1" min="0">
             </div>
             <div class="form-group">
                 <label>Сумма внесенных платежей</label>
-                <input type="number" name="liabilities[${liabilityCount}][paid_amount]" placeholder="0">
+                <input type="number" name="liabilities[${index}][paid_amount]" placeholder="0">
             </div>
             <div class="form-group">
                 <label class="checkbox-group">
-                    <input type="checkbox" name="liabilities[${liabilityCount}][has_overdues]" onchange="toggleOverdueDateInput(this)">
+                    <input type="checkbox" name="liabilities[${index}][has_overdues]" onchange="toggleOverdueDateInput(this)">
                     Имеются ли просрочки
                 </label>
-                <input type="text" name="liabilities[${liabilityCount}][overdue_date]" placeholder="ДД.ММ.ГГГГ" class="overdue-date-input">
+                <input type="text" name="liabilities[${index}][overdue_date]" placeholder="ДД.ММ.ГГГГ" class="overdue-date-input">
             </div>
             <div class="form-group">
                 <label class="checkbox-group">
-                    <input type="checkbox" name="liabilities[${liabilityCount}][has_guarantor]">
-                    Есть финансовый поручитель
+                    <input type="checkbox" name="liabilities[${index}][has_guarantor]">
+                    Есть-ли поручитель
                 </label>
             </div>
         </div>
     `;
+    
     liabilityItems.appendChild(newItem);
-    liabilityCount++;
+    updateRemoveButtons();
     
-    // Инициализируем обработчики для нового элемента
-    const newSelect = newItem.querySelector('select[name^="liabilities"]');
-    toggleLiabilityOtherInput(newSelect);
+    // Добавляем обработчики событий для новых полей ввода
+    const monthlyPaymentInput = newItem.querySelector('.monthly-payment-input');
+    const totalLiabilityInput = newItem.querySelector('.total-liability-input');
     
-    // Инициализируем обработчик для чекбокса просрочек
-    const hasOverduesCheckbox = newItem.querySelector('input[name$="[has_overdues]"]');
-    toggleOverdueDateInput(hasOverduesCheckbox);
+    monthlyPaymentInput.addEventListener('input', updateLiabilitiesTotals);
+    totalLiabilityInput.addEventListener('input', updateLiabilitiesTotals);
+    
+    // Обновляем итоги после добавления нового элемента
+    updateLiabilitiesTotals();
 };
 
 // Функция для пересчета общих сумм обязательств
@@ -650,12 +666,13 @@ function serializeFormData(formData) {
         
         return {
             'Вид обяз-ва': liabilityName || '',
+            'Банк': item.bank_name || '', // НОВОЕ ПОЛЕ: Банк выдавший кредит
             'Ежемес. платеж': item.monthly_payment || 0,
             'Общая сумма': item.total_liability || 0,
             'Дата получения': item.loan_date || '',
-            'Срок кредита': item.loan_term || 0,
+            'Срок': item.loan_term || 0,
             'Сумма внесённых платежей': item.paid_amount || 0,
-            'Фин. поручитель': item.has_guarantor ? "Да" : "Нет",
+            'Поручитель': item.has_guarantor ? "Да" : "Нет",
             'Просрочки': overdueStatus
         };
     });
@@ -821,5 +838,3 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', updateLiabilitiesTotals);
     });
 });
-
-
