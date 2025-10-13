@@ -385,6 +385,11 @@
                                 </select>
                                 <input type="text" name="liabilities[0][other_name]" placeholder="Укажите вид обязательства" class="other-input">
                             </div>
+                            <!-- НОВОЕ ПОЛЕ: Банк выдавший кредит -->
+                            <div class="form-group">
+                                <label>Банк выдавший кредит</label>
+                                <input type="text" name="liabilities[0][bank_name]" placeholder="Введите название банка">
+                            </div>
                             <div class="form-group">
                                 <label>Ежемесячный платеж</label>
                                 <input type="number" name="liabilities[0][monthly_payment]" placeholder="0" class="monthly-payment-input">
@@ -416,7 +421,7 @@
                             <div class="form-group">
                                 <label class="checkbox-group">
                                     <input type="checkbox" name="liabilities[0][has_guarantor]">
-                                    Есть финансовый поручитель
+                                    Есть-ли поручитель
                                 </label>
                             </div>
                         </div>
@@ -661,8 +666,15 @@
                                     <label>Наименование имущества</label>
                                     <select name="movable[0][name]" onchange="toggleMovableOtherInput(this)">
                                         <option value="">Выберите вид имущества</option>
-                                        <option value="Машина">Машина</option>
-                                        <option value="Яхта">Яхта</option>
+                                        <option value="Автомобиль">Автомобиль</option>
+                                        <option value="Автобус">Автобус</option>
+                                        <option value="Мотоцикл">Мотоцикл</option>
+                                        <option value="Прицеп">Прицеп</option>
+                                        <option value="Снегоход">Снегоход</option>
+                                        <option value="Спецтехника">Спецтехника</option>
+                                        <option value="Трактор">Трактор</option>
+                                        <option value="Катер (лодка)">Катер (лодка)</option>
+                                        <option value="Вагончик">Вагончик</option>
                                         <option value="other">Другое</option>
                                     </select>
                                     <input type="text" name="movable[0][other_name]" placeholder="Укажите вид имущества" class="other-input">
